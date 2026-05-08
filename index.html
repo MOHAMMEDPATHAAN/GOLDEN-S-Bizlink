@@ -1,460 +1,549 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#f5c000">
-    <title>Golden's Business - Company Panel</title>
+    <title>Bizlink – Golden's Business</title>
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#f5c000', dark: '#d4a000', light: '#ffd740' },
+                        bizblue: { DEFAULT: '#0066ff', glow: '#4d94ff' },
+                        dark: { 900: '#0a0a0a', 800: '#141414', 700: '#1f1f1f' }
+                    },
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root {
-            --gold-primary: #f5c000;
-            --gold-dark: #b89000;
-            --bg-dark: #0f0f11;
-            --panel-bg: #1a1a1e;
-        }
-
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
+            background-color: #0a0a0a;
             color: #ffffff;
-            margin: 0;
             overflow-x: hidden;
+            /* Premium textured background */
+            background-image: radial-gradient(circle at 50% 0%, #1f1f1f 0%, transparent 70%), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#f5c000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
-        /* Premium Golden Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--gold-primary); border-radius: 10px; }
+        /* Hide elements dynamically */
+        .hidden-app { display: none !important; }
 
-        /* Splash Screen Animations */
+        /* --- SPLASH ANIMATION --- */
         #splash {
-            background: radial-gradient(circle at center, #2a2a2a 0%, #000000 100%);
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #050505 0%, #1a1500 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-out;
         }
-        
-        .logo-text {
+
+        .bizlink-logo {
             font-size: 3rem;
             font-weight: 700;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .logo-tech {
-            color: var(--gold-primary);
+            color: #0066ff;
+            text-shadow: 0 0 15px rgba(0, 102, 255, 0.6);
+            margin-bottom: 1rem;
             opacity: 0;
-            transform: translateX(-20px);
-            animation: slideInTech 2s forwards 0.5s infinite alternate;
+            animation: fadeInBlue 1s ease forwards 0.5s;
         }
 
-        @keyframes slideInTech {
-            0% { opacity: 0; transform: translateX(-20px); }
-            50% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 1; transform: translateX(0); }
+        .golden-container {
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .text-golden { color: #f5c000; text-shadow: 0 0 10px rgba(245, 192, 0, 0.4); }
+        .text-tech { color: #888; transition: opacity 1s ease; }
+        .text-s { color: #f5c000; position: relative; display: inline-block; }
+
+        /* Animation Keyframes for Developer Splash */
+        @keyframes fadeInBlue { to { opacity: 1; } }
+        
+        .animate-splash .text-tech { animation: fadeTech 3s infinite; }
+        .animate-splash .text-s { animation: moveS 3s infinite; }
+
+        @keyframes fadeTech {
+            0%, 20% { opacity: 1; max-width: 100px; }
+            40%, 60% { opacity: 0; max-width: 0; font-size: 0; margin: 0; padding: 0; }
+            80%, 100% { opacity: 1; max-width: 100px; font-size: 2rem; }
+        }
+        @keyframes moveS {
+            0%, 20% { transform: translateX(0); }
+            40%, 60% { transform: translateX(-10px); }
+            80%, 100% { transform: translateX(0); }
         }
 
         .spinner {
-            border: 3px solid rgba(245, 192, 0, 0.3);
-            border-top: 3px solid var(--gold-primary);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(245, 192, 0, 0.2);
+            border-top-color: #f5c000;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
             animation: spin 1s linear infinite;
+            margin-top: 2rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- PREMIUM LOCK UI --- */
+        .premium-lock {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            border-radius: inherit;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Form & UI Styling */
-        .glass-panel {
-            background: rgba(26, 26, 30, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(245, 192, 0, 0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .input-field {
-            background: rgba(0,0,0,0.3);
+        /* Standard Input Styling */
+        .input-g {
+            width: 100%;
+            background: #141414;
             border: 1px solid #333;
             color: white;
-            transition: all 0.3s ease;
-        }
-        
-        .input-field:focus {
-            border-color: var(--gold-primary);
-            box-shadow: 0 0 8px rgba(245, 192, 0, 0.3);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
             outline: none;
+            transition: all 0.3s;
         }
-
+        .input-g:focus { border-color: #f5c000; box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.2); }
+        
         .btn-gold {
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold-primary));
-            color: #000;
+            background: linear-gradient(90deg, #f5c000, #d4a000);
+            color: #0a0a0a;
             font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 192, 0, 0.4);
-        }
-
-        .premium-locked {
-            position: relative;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .premium-locked::after {
-            content: '\f023';
-            font-family: 'FontAwesome';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-            color: var(--gold-primary);
-        }
-
-        /* Toast Notifications */
-        .toast {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--panel-bg);
-            border-left: 4px solid var(--gold-primary);
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            transition: bottom 0.4s ease;
-            z-index: 1000;
-        }
-        .toast.show { bottom: 20px; }
+        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245, 192, 0, 0.4); }
     </style>
 </head>
 <body>
 
     <!-- 1. SPLASH SCREEN -->
-    <div id="splash" class="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-1000">
-        <div class="logo-text">
-            GOLDEN<span class="logo-tech">techS</span>
+    <div id="splash" class="animate-splash">
+        <div class="bizlink-logo">Bizlink</div>
+        <div class="golden-container">
+            <span class="text-golden">GOLDEN</span>
+            <span class="text-tech">tech</span>
+            <span class="text-s">S</span>
         </div>
-        <div class="spinner mt-6"></div>
-        <div aria-live="polite" class="sr-only">Loading Bizlink...</div>
+        <div class="spinner"></div>
     </div>
 
-    <!-- 2. ROLE SELECTION (RBAC) -->
-    <div id="role-screen" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md text-center transform transition-all scale-95 opacity-0" id="role-panel">
-            <h2 class="text-2xl font-bold mb-2">Select Your Role</h2>
-            <p class="text-gray-400 mb-6 text-sm">Choose how you want to access Bizlink.</p>
+    <!-- 2. RBAC GATEWAY (Role Selection) -->
+    <div id="rbac-modal" class="hidden-app fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <!-- Premium Sparkle Decor -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gold/20 rounded-full blur-3xl"></div>
             
-            <div class="space-y-3 mb-6 text-left">
-                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
-                    <input type="radio" name="role" value="owner" class="mr-2" checked> Company Owner
+            <h2 class="text-2xl font-bold text-white mb-2 text-center">Welcome to <span class="text-bizblue text-glow">Bizlink</span></h2>
+            <p class="text-gray-400 text-sm mb-6 text-center">Select your role to continue</p>
+            
+            <div class="space-y-3">
+                <label class="block cursor-pointer">
+                    <input type="radio" name="role" value="owner" class="peer sr-only" checked>
+                    <div class="p-4 rounded-xl border border-gray-700 hover:border-gold peer-checked:border-gold peer-checked:bg-gold/10 transition">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-building text-gold mr-2"></i> Company Owner</div>
+                        <div class="text-xs text-gray-500 mt-1">Register your business, list products, and manage operations.</div>
+                    </div>
                 </label>
-                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
-                    <input type="radio" name="role" value="manager" class="mr-2"> Company Manager
+                <label class="block cursor-pointer">
+                    <input type="radio" name="role" value="manager" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 hover:border-gold peer-checked:border-gold peer-checked:bg-gold/10 transition">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-user-tie text-gold mr-2"></i> Company Manager</div>
+                        <div class="text-xs text-gray-500 mt-1">Manage an existing registered company.</div>
+                    </div>
                 </label>
-                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
-                    <input type="radio" name="role" value="salesman" class="mr-2"> Salesman / Agent
+                <label class="block cursor-pointer">
+                    <input type="radio" name="role" value="salesman" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 hover:border-gold peer-checked:border-gold peer-checked:bg-gold/10 transition">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-briefcase text-bizblue mr-2"></i> Salesman / Agent</div>
+                        <div class="text-xs text-gray-500 mt-1">Network, close deals, and browse catalogs.</div>
+                    </div>
                 </label>
-                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
-                    <input type="radio" name="role" value="viewer" class="mr-2"> Viewer
+                <label class="block cursor-pointer">
+                    <input type="radio" name="role" value="viewer" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 hover:border-gold peer-checked:border-gold peer-checked:bg-gold/10 transition">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-eye text-bizblue mr-2"></i> Viewer</div>
+                        <div class="text-xs text-gray-500 mt-1">Just browsing products and reels.</div>
+                    </div>
                 </label>
             </div>
             
-            <button onclick="handleRoleSelection()" class="btn-gold w-full py-3 rounded-xl">Continue <i class="fa-solid fa-arrow-right ml-2"></i></button>
+            <button onclick="handleRoleSelection()" class="btn-gold w-full mt-6 flex justify-center items-center">
+                Continue <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
         </div>
     </div>
 
-    <!-- 3. AUTHENTICATION (LOGIN / SIGNUP) -->
-    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg transform transition-all scale-95 opacity-0" id="auth-panel">
+    <!-- 3. MAIN AUTHENTICATION PANEL -->
+    <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-800">
             
-            <!-- Tabs -->
-            <div class="flex border-b border-gray-700 mb-6">
-                <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500">Sign In</button>
-                <button onclick="switchTab('signup')" id="tab-signup" class="flex-1 py-3 font-semibold text-gray-400 hover:text-white">Sign Up</button>
+            <!-- Left Side: Branding & Info -->
+            <div class="p-8 lg:p-12 bg-gradient-to-br from-dark-900 to-dark-800 flex flex-col justify-between relative">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+                <div class="relative z-10">
+                    <h1 class="text-4xl font-bold text-bizblue mb-2" style="text-shadow: 0 0 20px rgba(0, 102, 255, 0.4);">Bizlink</h1>
+                    <p class="text-gold font-medium tracking-wide text-sm">GOLDEN'S BUSINESS PANEL</p>
+                </div>
+                
+                <div class="relative z-10 mt-12 mb-12">
+                    <h2 class="text-2xl font-bold text-white mb-4">Scale Your Business Globally.</h2>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><i class="fa-solid fa-check text-gold mr-2"></i> Unlimited High-Res Product Listings</li>
+                        <li><i class="fa-solid fa-check text-gold mr-2"></i> B2B Reel Networking Feed</li>
+                        <li><i class="fa-solid fa-check text-gold mr-2"></i> LiveKit Voice & Video Deals</li>
+                        <li class="premium-feature-item"><i class="fa-solid fa-star text-bizblue mr-2"></i> AI-Powered Chat & Sales Assistant</li>
+                    </ul>
+                </div>
+                
+                <div class="relative z-10 text-xs text-gray-600">
+                    &copy; 2026 Golden's TechS. All rights reserved.
+                </div>
             </div>
 
-            <!-- Login Form -->
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Email</label>
-                        <input type="email" id="login-email" required class="input-field w-full px-4 py-3 rounded-xl">
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-sm text-gray-400">Password</label>
-                            <a href="#" class="text-xs text-yellow-500 hover:underline">Forgot password?</a>
-                        </div>
-                        <div class="relative">
-                            <input type="password" id="login-password" required class="input-field w-full px-4 py-3 rounded-xl">
-                            <button type="button" onclick="togglePassword('login-password')" class="absolute right-4 top-3 text-gray-400"><i class="fa-solid fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="remember" class="mr-2">
-                        <label for="remember" class="text-sm text-gray-400">Remember me</label>
-                    </div>
-                    <button type="submit" id="login-btn" class="btn-gold w-full py-3 rounded-xl mt-4">Sign In</button>
-                    
-                    <div class="my-4 text-center text-gray-500 text-sm">OR</div>
-                    
-                    <button type="button" onclick="handleGoogleLogin()" class="w-full py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition">
-                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 inline mr-2" alt="Google"> Continue with Google
+            <!-- Right Side: Forms -->
+            <div class="p-8 lg:p-12 relative">
+                
+                <!-- Tab Navigation -->
+                <div class="flex space-x-6 mb-8 border-b border-gray-800 pb-2">
+                    <button onclick="switchTab('signin')" id="tab-signin" class="text-gold font-semibold border-b-2 border-gold pb-2 px-2 transition">Sign In</button>
+                    <button onclick="switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-semibold pb-2 px-2 transition">Create Account</button>
+                </div>
+
+                <!-- Toast Notification Area -->
+                <div id="toast-msg" class="hidden bg-red-500/20 border border-red-500 text-red-400 p-3 rounded mb-4 text-sm"></div>
+
+                <!-- Sign In Form -->
+                <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-4">
+                    <button type="button" class="w-full bg-white text-gray-900 font-semibold p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
+                        <i class="fa-brands fa-google text-red-500 mr-2 text-lg"></i> Continue with Google
                     </button>
-                </div>
-            </form>
+                    
+                    <div class="flex items-center my-4">
+                        <div class="flex-1 border-t border-gray-700"></div>
+                        <div class="px-3 text-xs text-gray-500">OR EMAIL</div>
+                        <div class="flex-1 border-t border-gray-700"></div>
+                    </div>
 
-            <!-- Sign Up Form (Only Compulsory Fields Shown to save space) -->
-            <form id="signup-form" class="hidden" onsubmit="handleSignup(event)">
-                <div class="space-y-4 h-96 overflow-y-auto pr-2">
                     <div>
-                        <label class="block text-sm text-gray-400 mb-1">Company Name *</label>
-                        <input type="text" id="reg-company" required class="input-field w-full px-4 py-3 rounded-xl">
+                        <label class="block text-xs text-gray-400 mb-1">Email Address</label>
+                        <input type="email" id="login-email" class="input-g" required placeholder="ceo@company.com">
                     </div>
                     <div>
-                        <label class="block text-sm text-gray-400 mb-1">CEO Name *</label>
-                        <input type="text" id="reg-ceo" required class="input-field w-full px-4 py-3 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Email *</label>
-                        <input type="email" id="reg-email" required class="input-field w-full px-4 py-3 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Password * (Min 12 chars)</label>
-                        <div class="relative">
-                            <input type="password" id="reg-password" minlength="12" required class="input-field w-full px-4 py-3 rounded-xl" onkeyup="checkPasswordStrength()">
+                        <div class="flex justify-between items-end mb-1">
+                            <label class="block text-xs text-gray-400">Password</label>
+                            <a href="#" onclick="showForgotPassword()" class="text-xs text-gold hover:underline">Forgot?</a>
                         </div>
-                        <!-- Password Strength Meter -->
-                        <div class="flex gap-1 mt-2 h-1">
-                            <div id="str-1" class="flex-1 rounded bg-gray-700"></div>
-                            <div id="str-2" class="flex-1 rounded bg-gray-700"></div>
-                            <div id="str-3" class="flex-1 rounded bg-gray-700"></div>
+                        <div class="relative">
+                            <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
+                            <i class="fa-regular fa-eye absolute right-3 top-3 text-gray-500 cursor-pointer hover:text-gold" onclick="togglePassword('login-password')"></i>
                         </div>
                     </div>
                     
-                    <!-- File Upload Mocks -->
-                    <div class="flex gap-4 mt-2">
-                        <div class="flex-1">
-                            <label class="block text-xs text-gray-400 mb-1">CEO Face Image</label>
-                            <div class="border border-dashed border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-yellow-500">
-                                <i class="fa-solid fa-camera text-gray-400 mb-1"></i><br><span class="text-xs">Upload</span>
-                            </div>
+                    <button type="submit" id="btn-login" class="btn-gold w-full mt-2">
+                        Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>
+                    </button>
+                </form>
+
+                <!-- Sign Up Form (Company) -->
+                <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="reg-company" class="input-g" required placeholder="Golden's TechS">
                         </div>
-                        <div class="flex-1">
-                            <label class="block text-xs text-gray-400 mb-1">Company Logo</label>
-                            <div class="border border-dashed border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-yellow-500">
-                                <i class="fa-solid fa-building text-gray-400 mb-1"></i><br><span class="text-xs">Upload</span>
-                            </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">CEO Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="reg-ceo" class="input-g" required placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
+                            <select id="reg-country" class="input-g" required>
+                                <option value="UAE">United Arab Emirates</option>
+                                <option value="USA">United States</option>
+                                <option value="IND">India</option>
+                                <option value="UK">United Kingdom</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="flex items-start mt-2">
-                        <input type="checkbox" id="terms" required class="mt-1 mr-2">
-                        <label for="terms" class="text-xs text-gray-400">I agree to the <a href="terms.html" class="text-yellow-500">Terms & Conditions</a> and <a href="policy.html" class="text-yellow-500">Privacy Policy</a>.</label>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Company Profile (Short) <span class="text-red-500">*</span></label>
+                        <textarea id="reg-profile" rows="2" class="input-g" required placeholder="Leading manufacturer of..."></textarea>
                     </div>
 
-                    <button type="submit" id="signup-btn" class="btn-gold w-full py-3 rounded-xl mt-4">Create Account</button>
-                </div>
-            </form>
+                    <!-- Face / Logo Upload (Simulated for UI) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="border border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-gold transition cursor-pointer">
+                            <i class="fa-solid fa-camera text-2xl text-gray-500 mb-2"></i>
+                            <div class="text-xs text-gray-400">CEO Face Image</div>
+                        </div>
+                        <div class="border border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-gold transition cursor-pointer">
+                            <i class="fa-solid fa-image text-2xl text-gray-500 mb-2"></i>
+                            <div class="text-xs text-gray-400">Company Logo</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Work Email <span class="text-red-500">*</span></label>
+                        <input type="email" id="reg-email" class="input-g" required placeholder="contact@company.com">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-password" class="input-g" required minlength="12" placeholder="Min 12 chars">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Confirm <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-confirm" class="input-g" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Premium Feature Check UI Demo -->
+                    <div class="relative p-4 rounded-lg border border-gray-700 mt-4 overflow-hidden">
+                        <div class="flex justify-between items-center z-10 relative">
+                            <div>
+                                <h4 class="text-sm font-semibold text-white"><i class="fa-solid fa-bolt text-gold mr-1"></i> Verify Tax ID Automatically</h4>
+                                <p class="text-xs text-gray-400">Requires Pro Tier or higher</p>
+                            </div>
+                            <i class="fa-solid fa-lock text-gray-500"></i>
+                        </div>
+                        <!-- Lock Overlay -->
+                        <div class="premium-lock">
+                            <span class="text-xs font-bold text-gold"><i class="fa-solid fa-crown mr-1"></i> UPGRADE TO UNLOCK</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="checkbox" required class="mt-1 mr-2 bg-dark-900 border-gray-700 rounded text-gold focus:ring-gold">
+                            <span class="text-xs text-gray-400">I agree to the <a href="terms.html" class="text-bizblue hover:underline">Terms of Service</a> and <a href="policy.html" class="text-bizblue hover:underline">Privacy Policy</a>.</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="btn-signup" class="btn-gold w-full mt-2">
+                        Create Company Account
+                    </button>
+                </form>
+
+                <!-- Forgot Password / OTP Form -->
+                <form id="form-forgot" onsubmit="handleOTP(event)" class="hidden space-y-4">
+                    <h3 class="text-lg font-semibold text-white mb-2">Reset Password</h3>
+                    <p class="text-xs text-gray-400 mb-4">Enter your email to receive a 6-digit OTP.</p>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Registered Email</label>
+                        <input type="email" id="otp-email" class="input-g" required placeholder="ceo@company.com">
+                    </div>
+                    
+                    <button type="submit" class="btn-gold w-full mt-2">Send OTP</button>
+                    <button type="button" onclick="switchTab('signin')" class="w-full mt-2 text-xs text-gray-500 hover:text-white transition">Back to Sign In</button>
+                </form>
+
+            </div>
         </div>
     </div>
 
-    <!-- Premium Feature Teaser (Locked) -->
-    <div id="premium-teaser" class="hidden fixed bottom-4 right-4 glass-panel p-3 rounded-lg flex items-center gap-3">
-        <i class="fa-solid fa-crown text-yellow-500 text-xl"></i>
-        <div>
-            <p class="text-sm font-semibold">Golden Premium Theme</p>
-            <p class="text-xs text-gray-400">Upgrade your plan to unlock.</p>
-        </div>
-        <button onclick="window.location.href='packages.html'" class="ml-2 px-3 py-1 bg-gray-800 text-xs rounded hover:bg-gray-700">Upgrade</button>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <span id="toast-msg"></span>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- Application Logic -->
     <script>
-        // --- 1. SUPABASE INITIALIZATION ---
-        // TODO: Replace with your actual Supabase URL and Anon Key
+        // --- 1. Supabase Initialization ---
+        // REPLACE THESE WITH YOUR ACTUAL SUPABASE KEYS
         const SUPABASE_URL = 'https://wzeizwxkrgjdigxzkybc.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZWl6d3hrcmdqZGlneHpreWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTc4NjMsImV4cCI6MjA5Mzc5Mzg2M30.xAtc3yn3H5-CkQTEH_tFyR6Irp4t_56jWtPpOWhO5m8';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZWl6d3hrcmdqZGlneHpreWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTc4NjMsImV4cCI6MjA5Mzc5Mzg2M30.xAtc3yn3H5-CkQTEH_tFyR6Irp4t_56jWtPpOWhO5m8';
         
-        // Mocking Supabase Client for demo purposes since keys are empty
-        const supabase = {
-            auth: {
-                signInWithPassword: async (data) => {
-                    return new Promise(res => setTimeout(() => {
-                        if(data.email && data.password) res({data: {user: {id: '123'}}, error: null});
-                        else res({data: null, error: {message: 'Invalid login'}});
-                    }, 1500));
-                },
-                signUp: async (data) => {
-                    return new Promise(res => setTimeout(() => res({data: {user: {id: '123'}}, error: null}), 1500));
-                },
-                signInWithOAuth: async () => { showToast('Redirecting to Google...'); }
-            }
-        };
+        // Mocking Supabase client for UI demonstration purposes
+        // let supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Supabase connected (Mock)");
 
-        // --- 2. SCREEN NAVIGATION LOGIC ---
+        // --- 2. UI Routing & Splash Logic ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Simulate App Loading & Config Fetch (Splash Screen)
+            // Simulate splash loading time (Supabase init & config fetch)
             setTimeout(() => {
-                document.getElementById('splash').style.opacity = '0';
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                
                 setTimeout(() => {
-                    document.getElementById('splash').classList.add('hidden');
-                    // Show Role Screen
-                    document.getElementById('role-screen').classList.remove('hidden');
-                    setTimeout(() => {
-                        document.getElementById('role-panel').classList.remove('scale-95', 'opacity-0');
-                    }, 50);
-                }, 1000);
-            }, 2500);
+                    splash.classList.add('hidden-app');
+                    // Check if returning user
+                    const savedRole = localStorage.getItem('bizlink_role');
+                    if (savedRole) {
+                        routeUser(savedRole);
+                    } else {
+                        document.getElementById('rbac-modal').classList.remove('hidden-app');
+                    }
+                }, 800); // Wait for fade out
+            }, 2500); // Show splash for 2.5s
         });
 
-        // Handle Role Selection
+        // --- 3. RBAC Handler ---
         function handleRoleSelection() {
             const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            localStorage.setItem('bizlink_role', selectedRole);
+            routeUser(selectedRole);
+        }
+
+        function routeUser(role) {
+            document.getElementById('rbac-modal').classList.add('hidden-app');
             
-            if (selectedRole === 'salesman' || selectedRole === 'viewer') {
-                showToast(`Redirecting to Agent Portal...`);
-                setTimeout(() => {
-                    window.location.href = '2index.html'; // Redirecting to module 2
-                }, 1000);
+            if (role === 'salesman' || role === 'viewer') {
+                // Route to Salesman/Viewer App
+                window.location.href = '2index.html'; 
+                // For demo purposes if file doesn't exist, just alert:
+                // alert("Redirecting to 2index.html for Salesmen/Viewers");
             } else {
-                // Owner or Manager -> Go to Auth Screen
-                document.getElementById('role-panel').classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    document.getElementById('role-screen').classList.add('hidden');
-                    document.getElementById('auth-screen').classList.remove('hidden');
-                    document.getElementById('premium-teaser').classList.remove('hidden');
-                    setTimeout(() => {
-                        document.getElementById('auth-panel').classList.remove('scale-95', 'opacity-0');
-                    }, 50);
-                }, 300);
+                // Owner / Manager stays here for Company Panel Auth
+                document.getElementById('auth-container').classList.remove('hidden-app');
             }
         }
 
-        // --- 3. AUTHENTICATION UI LOGIC ---
+        // --- 4. Form Interactions ---
         function switchTab(tab) {
-            const loginForm = document.getElementById('login-form');
-            const signupForm = document.getElementById('signup-form');
-            const tabLogin = document.getElementById('tab-login');
-            const tabSignup = document.getElementById('tab-signup');
+            const signinForm = document.getElementById('form-signin');
+            const signupForm = document.getElementById('form-signup');
+            const forgotForm = document.getElementById('form-forgot');
+            const tabIn = document.getElementById('tab-signin');
+            const tabUp = document.getElementById('tab-signup');
+            const msg = document.getElementById('toast-msg');
+            
+            msg.classList.add('hidden'); // Clear errors
 
-            if (tab === 'login') {
-                loginForm.classList.remove('hidden');
+            if (tab === 'signin') {
+                signinForm.classList.remove('hidden');
                 signupForm.classList.add('hidden');
-                tabLogin.className = "flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500";
-                tabSignup.className = "flex-1 py-3 font-semibold text-gray-400 hover:text-white";
-            } else {
-                loginForm.classList.add('hidden');
+                forgotForm.classList.add('hidden');
+                
+                tabIn.className = "text-gold font-semibold border-b-2 border-gold pb-2 px-2 transition";
+                tabUp.className = "text-gray-500 hover:text-gray-300 font-semibold pb-2 px-2 transition";
+            } else if (tab === 'signup') {
+                signinForm.classList.add('hidden');
                 signupForm.classList.remove('hidden');
-                tabSignup.className = "flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500";
-                tabLogin.className = "flex-1 py-3 font-semibold text-gray-400 hover:text-white";
+                forgotForm.classList.add('hidden');
+                
+                tabUp.className = "text-gold font-semibold border-b-2 border-gold pb-2 px-2 transition";
+                tabIn.className = "text-gray-500 hover:text-gray-300 font-semibold pb-2 px-2 transition";
             }
         }
 
-        function togglePassword(id) {
-            const input = document.getElementById(id);
+        function showForgotPassword() {
+            document.getElementById('form-signin').classList.add('hidden');
+            document.getElementById('form-signup').classList.add('hidden');
+            document.getElementById('form-forgot').classList.remove('hidden');
+            
+            // Un-highlight tabs
+            document.getElementById('tab-signin').className = "text-gray-500 hover:text-gray-300 font-semibold pb-2 px-2 transition";
+            document.getElementById('tab-signup').className = "text-gray-500 hover:text-gray-300 font-semibold pb-2 px-2 transition";
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling;
             if (input.type === "password") {
                 input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             } else {
                 input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         }
 
-        // Password Strength Logic
-        function checkPasswordStrength() {
-            const val = document.getElementById('reg-password').value;
-            const str1 = document.getElementById('str-1');
-            const str2 = document.getElementById('str-2');
-            const str3 = document.getElementById('str-3');
-            
-            str1.className = 'flex-1 rounded bg-gray-700';
-            str2.className = 'flex-1 rounded bg-gray-700';
-            str3.className = 'flex-1 rounded bg-gray-700';
-
-            if(val.length > 0) str1.className = 'flex-1 rounded bg-red-500';
-            if(val.length >= 8 && /[A-Z]/.test(val)) {
-                str1.className = 'flex-1 rounded bg-yellow-500';
-                str2.className = 'flex-1 rounded bg-yellow-500';
-            }
-            if(val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) {
-                str1.className = 'flex-1 rounded bg-green-500';
-                str2.className = 'flex-1 rounded bg-green-500';
-                str3.className = 'flex-1 rounded bg-green-500';
-            }
+        function showToast(message, isError = true) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = message;
+            toast.className = isError 
+                ? "bg-red-500/20 border border-red-500 text-red-400 p-3 rounded mb-4 text-sm"
+                : "bg-green-500/20 border border-green-500 text-green-400 p-3 rounded mb-4 text-sm";
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
         }
 
-        // --- 4. FORM SUBMISSIONS ---
+        // --- 5. Mock Auth Logic (Connect this to your actual Supabase calls) ---
         async function handleLogin(e) {
             e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+            const btn = document.getElementById('btn-login');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
             btn.disabled = true;
 
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-
-            if (error) {
-                showToast(error.message);
-                btn.innerHTML = 'Sign In';
-                btn.disabled = false;
-            } else {
-                showToast('Login successful! Loading dashboard...');
-                setTimeout(() => window.location.href = 'home.html', 1500); // Redirect to main app shell
-            }
+            // MOCK SUPABASE CALL
+            // const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            setTimeout(() => {
+                const email = document.getElementById('login-email').value;
+                if(email === 'test@golden.com') {
+                    // Success -> redirect to home.html
+                    window.location.href = 'home.html';
+                } else {
+                    showToast("Invalid credentials. Try test@golden.com");
+                    btn.innerHTML = 'Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>';
+                    btn.disabled = false;
+                }
+            }, 1500);
         }
 
         async function handleSignup(e) {
             e.preventDefault();
-            const btn = document.getElementById('signup-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+            const pass = document.getElementById('reg-password').value;
+            const conf = document.getElementById('reg-confirm').value;
+            
+            if (pass !== conf) {
+                showToast("Passwords do not match.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-signup');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating Account...';
             btn.disabled = true;
 
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-password').value;
+            // MOCK SUPABASE CALL
+            // const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: ceoName } } });
 
-            // In a real app, you would save company/ceo info to the 'companies' table via an Edge Function or trigger here.
-            const { data, error } = await supabase.auth.signUp({ email, password: pass });
-
-            if (error) {
-                showToast(error.message);
-                btn.innerHTML = 'Create Account';
-                btn.disabled = false;
-            } else {
-                showToast('Account Created! Please verify your email.');
-                setTimeout(() => switchTab('login'), 2000);
-            }
-        }
-
-        function handleGoogleLogin() {
-            supabase.auth.signInWithOAuth({ provider: 'google' });
-        }
-
-        // --- 5. UTILITIES ---
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = message;
-            toast.classList.add('show');
             setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+                showToast("Account created successfully! Please check your email.", false);
+                btn.innerHTML = 'Create Company Account';
+                btn.disabled = false;
+                setTimeout(() => switchTab('signin'), 2000);
+            }, 2000);
         }
+
+        function handleOTP(e) {
+            e.preventDefault();
+            showToast("OTP sent successfully to your email.", false);
+        }
+
     </script>
+
 </body>
 </html>
