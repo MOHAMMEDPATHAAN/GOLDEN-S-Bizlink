@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5c000">
+    <title>Golden's Business - Company Panel</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --gold-primary: #f5c000;
+            --gold-dark: #b89000;
+            --bg-dark: #0f0f11;
+            --panel-bg: #1a1a1e;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Premium Golden Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--gold-primary); border-radius: 10px; }
+
+        /* Splash Screen Animations */
+        #splash {
+            background: radial-gradient(circle at center, #2a2a2a 0%, #000000 100%);
+        }
+        
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-tech {
+            color: var(--gold-primary);
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideInTech 2s forwards 0.5s infinite alternate;
+        }
+
+        @keyframes slideInTech {
+            0% { opacity: 0; transform: translateX(-20px); }
+            50% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .spinner {
+            border: 3px solid rgba(245, 192, 0, 0.3);
+            border-top: 3px solid var(--gold-primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Form & UI Styling */
+        .glass-panel {
+            background: rgba(26, 26, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(245, 192, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-field {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 8px rgba(245, 192, 0, 0.3);
+            outline: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold-primary));
+            color: #000;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 192, 0, 0.4);
+        }
+
+        .premium-locked {
+            position: relative;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .premium-locked::after {
+            content: '\f023';
+            font-family: 'FontAwesome';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: var(--gold-primary);
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            border-left: 4px solid var(--gold-primary);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: bottom 0.4s ease;
+            z-index: 1000;
+        }
+        .toast.show { bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. SPLASH SCREEN -->
+    <div id="splash" class="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="logo-text">
+            GOLDEN<span class="logo-tech">techS</span>
+        </div>
+        <div class="spinner mt-6"></div>
+        <div aria-live="polite" class="sr-only">Loading Bizlink...</div>
+    </div>
+
+    <!-- 2. ROLE SELECTION (RBAC) -->
+    <div id="role-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-md text-center transform transition-all scale-95 opacity-0" id="role-panel">
+            <h2 class="text-2xl font-bold mb-2">Select Your Role</h2>
+            <p class="text-gray-400 mb-6 text-sm">Choose how you want to access Bizlink.</p>
+            
+            <div class="space-y-3 mb-6 text-left">
+                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
+                    <input type="radio" name="role" value="owner" class="mr-2" checked> Company Owner
+                </label>
+                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
+                    <input type="radio" name="role" value="manager" class="mr-2"> Company Manager
+                </label>
+                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
+                    <input type="radio" name="role" value="salesman" class="mr-2"> Salesman / Agent
+                </label>
+                <label class="block p-4 border border-gray-700 rounded-xl cursor-pointer hover:border-yellow-500 transition">
+                    <input type="radio" name="role" value="viewer" class="mr-2"> Viewer
+                </label>
+            </div>
+            
+            <button onclick="handleRoleSelection()" class="btn-gold w-full py-3 rounded-xl">Continue <i class="fa-solid fa-arrow-right ml-2"></i></button>
+        </div>
+    </div>
+
+    <!-- 3. AUTHENTICATION (LOGIN / SIGNUP) -->
+    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg transform transition-all scale-95 opacity-0" id="auth-panel">
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-700 mb-6">
+                <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500">Sign In</button>
+                <button onclick="switchTab('signup')" id="tab-signup" class="flex-1 py-3 font-semibold text-gray-400 hover:text-white">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Email</label>
+                        <input type="email" id="login-email" required class="input-field w-full px-4 py-3 rounded-xl">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm text-gray-400">Password</label>
+                            <a href="#" class="text-xs text-yellow-500 hover:underline">Forgot password?</a>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="login-password" required class="input-field w-full px-4 py-3 rounded-xl">
+                            <button type="button" onclick="togglePassword('login-password')" class="absolute right-4 top-3 text-gray-400"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="mr-2">
+                        <label for="remember" class="text-sm text-gray-400">Remember me</label>
+                    </div>
+                    <button type="submit" id="login-btn" class="btn-gold w-full py-3 rounded-xl mt-4">Sign In</button>
+                    
+                    <div class="my-4 text-center text-gray-500 text-sm">OR</div>
+                    
+                    <button type="button" onclick="handleGoogleLogin()" class="w-full py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 inline mr-2" alt="Google"> Continue with Google
+                    </button>
+                </div>
+            </form>
+
+            <!-- Sign Up Form (Only Compulsory Fields Shown to save space) -->
+            <form id="signup-form" class="hidden" onsubmit="handleSignup(event)">
+                <div class="space-y-4 h-96 overflow-y-auto pr-2">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Company Name *</label>
+                        <input type="text" id="reg-company" required class="input-field w-full px-4 py-3 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">CEO Name *</label>
+                        <input type="text" id="reg-ceo" required class="input-field w-full px-4 py-3 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Email *</label>
+                        <input type="email" id="reg-email" required class="input-field w-full px-4 py-3 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Password * (Min 12 chars)</label>
+                        <div class="relative">
+                            <input type="password" id="reg-password" minlength="12" required class="input-field w-full px-4 py-3 rounded-xl" onkeyup="checkPasswordStrength()">
+                        </div>
+                        <!-- Password Strength Meter -->
+                        <div class="flex gap-1 mt-2 h-1">
+                            <div id="str-1" class="flex-1 rounded bg-gray-700"></div>
+                            <div id="str-2" class="flex-1 rounded bg-gray-700"></div>
+                            <div id="str-3" class="flex-1 rounded bg-gray-700"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- File Upload Mocks -->
+                    <div class="flex gap-4 mt-2">
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-400 mb-1">CEO Face Image</label>
+                            <div class="border border-dashed border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-yellow-500">
+                                <i class="fa-solid fa-camera text-gray-400 mb-1"></i><br><span class="text-xs">Upload</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-400 mb-1">Company Logo</label>
+                            <div class="border border-dashed border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-yellow-500">
+                                <i class="fa-solid fa-building text-gray-400 mb-1"></i><br><span class="text-xs">Upload</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start mt-2">
+                        <input type="checkbox" id="terms" required class="mt-1 mr-2">
+                        <label for="terms" class="text-xs text-gray-400">I agree to the <a href="terms.html" class="text-yellow-500">Terms & Conditions</a> and <a href="policy.html" class="text-yellow-500">Privacy Policy</a>.</label>
+                    </div>
+
+                    <button type="submit" id="signup-btn" class="btn-gold w-full py-3 rounded-xl mt-4">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Premium Feature Teaser (Locked) -->
+    <div id="premium-teaser" class="hidden fixed bottom-4 right-4 glass-panel p-3 rounded-lg flex items-center gap-3">
+        <i class="fa-solid fa-crown text-yellow-500 text-xl"></i>
+        <div>
+            <p class="text-sm font-semibold">Golden Premium Theme</p>
+            <p class="text-xs text-gray-400">Upgrade your plan to unlock.</p>
+        </div>
+        <button onclick="window.location.href='packages.html'" class="ml-2 px-3 py-1 bg-gray-800 text-xs rounded hover:bg-gray-700">Upgrade</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-msg"></span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. SUPABASE INITIALIZATION ---
+        // TODO: Replace with your actual Supabase URL and Anon Key
+        const SUPABASE_URL = 'https://wzeizwxkrgjdigxzkybc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6ZWl6d3hrcmdqZGlneHpreWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTc4NjMsImV4cCI6MjA5Mzc5Mzg2M30.xAtc3yn3H5-CkQTEH_tFyR6Irp4t_56jWtPpOWhO5m8';
+        
+        // Mocking Supabase Client for demo purposes since keys are empty
+        const supabase = {
+            auth: {
+                signInWithPassword: async (data) => {
+                    return new Promise(res => setTimeout(() => {
+                        if(data.email && data.password) res({data: {user: {id: '123'}}, error: null});
+                        else res({data: null, error: {message: 'Invalid login'}});
+                    }, 1500));
+                },
+                signUp: async (data) => {
+                    return new Promise(res => setTimeout(() => res({data: {user: {id: '123'}}, error: null}), 1500));
+                },
+                signInWithOAuth: async () => { showToast('Redirecting to Google...'); }
+            }
+        };
+
+        // --- 2. SCREEN NAVIGATION LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate App Loading & Config Fetch (Splash Screen)
+            setTimeout(() => {
+                document.getElementById('splash').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('splash').classList.add('hidden');
+                    // Show Role Screen
+                    document.getElementById('role-screen').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('role-panel').classList.remove('scale-95', 'opacity-0');
+                    }, 50);
+                }, 1000);
+            }, 2500);
+        });
+
+        // Handle Role Selection
+        function handleRoleSelection() {
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            
+            if (selectedRole === 'salesman' || selectedRole === 'viewer') {
+                showToast(`Redirecting to Agent Portal...`);
+                setTimeout(() => {
+                    window.location.href = '2index.html'; // Redirecting to module 2
+                }, 1000);
+            } else {
+                // Owner or Manager -> Go to Auth Screen
+                document.getElementById('role-panel').classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    document.getElementById('role-screen').classList.add('hidden');
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                    document.getElementById('premium-teaser').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('auth-panel').classList.remove('scale-95', 'opacity-0');
+                    }, 50);
+                }, 300);
+            }
+        }
+
+        // --- 3. AUTHENTICATION UI LOGIC ---
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const tabLogin = document.getElementById('tab-login');
+            const tabSignup = document.getElementById('tab-signup');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                tabLogin.className = "flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500";
+                tabSignup.className = "flex-1 py-3 font-semibold text-gray-400 hover:text-white";
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                tabSignup.className = "flex-1 py-3 font-semibold text-yellow-500 border-b-2 border-yellow-500";
+                tabLogin.className = "flex-1 py-3 font-semibold text-gray-400 hover:text-white";
+            }
+        }
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            if (input.type === "password") {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
+        }
+
+        // Password Strength Logic
+        function checkPasswordStrength() {
+            const val = document.getElementById('reg-password').value;
+            const str1 = document.getElementById('str-1');
+            const str2 = document.getElementById('str-2');
+            const str3 = document.getElementById('str-3');
+            
+            str1.className = 'flex-1 rounded bg-gray-700';
+            str2.className = 'flex-1 rounded bg-gray-700';
+            str3.className = 'flex-1 rounded bg-gray-700';
+
+            if(val.length > 0) str1.className = 'flex-1 rounded bg-red-500';
+            if(val.length >= 8 && /[A-Z]/.test(val)) {
+                str1.className = 'flex-1 rounded bg-yellow-500';
+                str2.className = 'flex-1 rounded bg-yellow-500';
+            }
+            if(val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) {
+                str1.className = 'flex-1 rounded bg-green-500';
+                str2.className = 'flex-1 rounded bg-green-500';
+                str3.className = 'flex-1 rounded bg-green-500';
+            }
+        }
+
+        // --- 4. FORM SUBMISSIONS ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+            btn.disabled = true;
+
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+
+            if (error) {
+                showToast(error.message);
+                btn.innerHTML = 'Sign In';
+                btn.disabled = false;
+            } else {
+                showToast('Login successful! Loading dashboard...');
+                setTimeout(() => window.location.href = 'home.html', 1500); // Redirect to main app shell
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const btn = document.getElementById('signup-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+            btn.disabled = true;
+
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+
+            // In a real app, you would save company/ceo info to the 'companies' table via an Edge Function or trigger here.
+            const { data, error } = await supabase.auth.signUp({ email, password: pass });
+
+            if (error) {
+                showToast(error.message);
+                btn.innerHTML = 'Create Account';
+                btn.disabled = false;
+            } else {
+                showToast('Account Created! Please verify your email.');
+                setTimeout(() => switchTab('login'), 2000);
+            }
+        }
+
+        function handleGoogleLogin() {
+            supabase.auth.signInWithOAuth({ provider: 'google' });
+        }
+
+        // --- 5. UTILITIES ---
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
