@@ -5,834 +5,329 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#f5c000">
     <title>Bizlink – Golden's Business</title>
-    
+
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        gold: { DEFAULT: '#f5c000', dark: '#d4a000', light: '#ffd740' },
-                        bizblue: { DEFAULT: '#0066ff', glow: '#4d94ff' },
-                        dark: { 900: '#050505', 800: '#111111', 700: '#1a1a1a' }
-                    },
-                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
-                    animation: {
-                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        pulseGlow: {
-                            '0%, 100%': { textShadow: '0 0 15px rgba(0, 102, 255, 0.5), 0 0 30px rgba(0, 102, 255, 0.3)' },
-                            '50%': { textShadow: '0 0 25px rgba(0, 102, 255, 0.8), 0 0 50px rgba(0, 102, 255, 0.5)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #050505;
-            color: #ffffff;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%), 
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f5c000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
+        /* Basic layout & theme (kept concise) */
+        :root { --gold: #f5c000; --bizblue: #0066ff; }
+        body { font-family: 'Poppins', sans-serif; background: #050505; color:#fff; margin:0; }
+        .hidden-app { display:none !important; }
 
-        .hidden-app { display: none !important; }
+        /* Splash */
+        #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#020202,#060507); z-index:9999; transition:opacity .45s,visibility .45s; }
+        #splash.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+        .bizlink-logo{ font-size:3.5rem; color:var(--bizblue); font-weight:800; margin-bottom:.6rem; }
+        .golden-container{ color:var(--gold); font-weight:700; margin-bottom:1rem; }
+        .spinner{ width:36px;height:36px;border:3px solid rgba(245,192,0,0.12); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite }
+        @keyframes spin{ to{ transform:rotate(360deg)} }
 
-        /* --- SPLASH ANIMATION --- */
-        #splash {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #020202 0%, #0a0800 100%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
-        }
+        /* basic input/button */
+        .input-g{ width:100%; background:#111; color:#eee; border-radius:8px; padding:.7rem 1rem; border:1px solid #333 }
+        .btn-gold{ background:linear-gradient(90deg,var(--gold),#d4a000); color:#050505; padding:.8rem 1.25rem; border-radius:.5rem; font-weight:700; border:none }
 
-        #splash.fade-out {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+        /* simple layout for auth & dashboard */
+        #auth-container{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem }
+        .card{ width:100%; max-width:980px; display:grid; grid-template-columns:1fr 1fr; background:#111; border-radius:16px; overflow:hidden }
+        .left{ padding:2.5rem; background:linear-gradient(180deg,#070709,#0e0e10) }
+        .right{ padding:2.5rem }
 
-        .bizlink-logo {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: #0066ff;
-            margin-bottom: 1rem;
-            opacity: 0;
-            transform: scale(0.9);
-            animation: popInBlue 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.2s;
-        }
+        /* dashboard & bottom bar */
+        #dashboard-container{ min-height:100vh; display:flex; flex-direction:column }
+        header.topbar{ display:flex; justify-content:space-between; align-items:center; padding:1rem; background:#0e0f10; border-bottom:1px solid #222 }
+        main.content{ flex:1; padding:1rem; }
+        nav.bottombar{ position:fixed; left:0; right:0; bottom:0; background:#0e0f10; border-top:1px solid #222; display:flex; justify-content:space-around; padding:.6rem 0 }
+        nav.bottombar button{ background:transparent; border:none; color:#999; display:flex; flex-direction:column; align-items:center; gap:.25rem }
+        nav.bottombar button.active{ color:var(--gold) }
 
-        .golden-container {
-            font-size: 2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            overflow: hidden;
-            margin-bottom: 2rem;
-            color: #f5c000;
-            text-shadow: 0 0 15px rgba(245, 192, 0, 0.6);
-            animation: fadeInGolden 1.5s ease-in-out forwards 0.5s;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(245, 192, 0, 0.1);
-            border-top-color: #f5c000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-top: 3rem;
-        }
-
-        @keyframes popInBlue {
-            to { opacity: 1; transform: scale(1); text-shadow: 0 0 20px rgba(0, 102, 255, 0.6); }
-        }
-
-        @keyframes fadeInGolden {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes spin { 
-            to { transform: rotate(360deg); } 
-        }
-
-        /* Standard Input Styling */
-        .input-g {
-            width: 100%;
-            background: #111111;
-            border: 1px solid #333;
-            color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            outline: none;
-            transition: all 0.3s;
-        }
-        .input-g:focus { 
-            border-color: #f5c000; 
-            box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.15); 
-            background: #1a1a1a; 
-        }
-        
-        .btn-gold {
-            background: linear-gradient(90deg, #f5c000, #d4a000);
-            color: #050505;
-            font-weight: 700;
-            padding: 0.85rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-gold:hover:not(:disabled) { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(245, 192, 0, 0.3); 
-        }
-        .btn-gold:disabled { 
-            opacity: 0.7; 
-            cursor: not-allowed; 
-            transform: none; 
-        }
-
-        /* Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
-
-        /* File Upload Previews */
-        .img-preview {
-            width: 100%; 
-            height: 100px; 
-            object-fit: cover; 
-            border-radius: 0.5rem; 
-            display: none;
-        }
+        /* small responsive */
+        @media (max-width:768px){ .card{ grid-template-columns:1fr } }
     </style>
 </head>
 <body>
 
-    <!-- 1. SPLASH SCREEN -->
-    <div id="splash" class="animate-splash">
-        <div class="bizlink-logo">Bizlink</div>
-        <div class="golden-container">
-            <span>GOLDEN'S</span>
-        </div>
-        <div class="spinner"></div>
+<!-- SPLASH -->
+<div id="splash">
+    <div class="bizlink-logo">Bizlink</div>
+    <div class="golden-container">GOLDEN'S BUSINESS</div>
+    <div class="spinner" aria-hidden></div>
+</div>
+
+<!-- RBAC (who are you) -->
+<div id="rbac-modal" class="hidden-app" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:9998;">
+    <div style="background:#0b0b0b;padding:2rem;border-radius:12px;max-width:420px;width:92%;">
+        <h3 style="margin:0 0 .5rem 0">Who are you?</h3>
+        <p style="color:#bbb;margin:0 0 1rem 0;font-size:.9rem">Choose a role to continue</p>
+        <form id="rbac-form">
+            <div style="display:grid;gap:.6rem">
+                <label><input type="radio" name="role" value="company" checked> Company</label>
+                <label><input type="radio" name="role" value="ceo"> CEO / Executive</label>
+                <label><input type="radio" name="role" value="salesman"> Salesman / Agent</label>
+                <label><input type="radio" name="role" value="visitor"> Visitor / Buyer</label>
+            </div>
+            <div style="margin-top:1rem"><button type="button" id="rbac-continue" class="btn-gold">Continue</button></div>
+        </form>
     </div>
+</div>
 
-    <!-- 2. RBAC GATEWAY - Who are you? -->
-    <div id="rbac-modal" class="hidden-app fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden transform transition-all scale-100">
-            <div class="absolute -top-20 -right-20 w-48 h-48 bg-gold/10 rounded-full blur-3xl"></div>
-            
-            <h2 class="text-3xl font-bold text-white mb-2 text-center tracking-tight">Join <span class="text-bizblue" style="animation: none;">Bizlink</span></h2>
-            <p class="text-gray-400 text-sm mb-8 text-center">Who are you?</p>
-            
-            <div class="space-y-4">
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="owner" class="peer sr-only" checked>
-                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
-                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-building text-gold mr-3"></i> Company Owner</div>
-                        <div class="text-xs text-gray-400 mt-1 pl-8">Register business, list products, manage sales.</div>
-                    </div>
-                </label>
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="ceo" class="peer sr-only">
-                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
-                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-crown text-gold mr-3"></i> CEO / Executive</div>
-                        <div class="text-xs text-gray-400 mt-1 pl-8">Full admin access, strategic management.</div>
-                    </div>
-                </label>
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="salesman" class="peer sr-only">
-                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
-                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-briefcase text-bizblue mr-3"></i> Salesman / Agent</div>
-                        <div class="text-xs text-gray-400 mt-1 pl-8">Network, view catalogs, close deals.</div>
-                    </div>
-                </label>
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="visitor" class="peer sr-only">
-                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
-                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-user text-bizblue mr-3"></i> Visitor / Buyer</div>
-                        <div class="text-xs text-gray-400 mt-1 pl-8">Browse products, connect with sellers.</div>
-                    </div>
-                </label>
-            </div>
-            
-            <button onclick="handleRoleSelection()" class="btn-gold w-full mt-8 flex justify-center items-center text-lg">
-                Continue <i class="fa-solid fa-arrow-right ml-2"></i>
-            </button>
+<!-- AUTH CONTAINER -->
+<div id="auth-container" class="hidden-app">
+    <div class="card">
+        <div class="left">
+            <h1 style="color:var(--bizblue);margin:0 0 .25rem 0;font-size:2rem">Bizlink</h1>
+            <div style="color:var(--gold);font-weight:600;margin-bottom:1rem">Golden's Business</div>
+            <p style="color:#bbb">The ultimate B2B networking hub. Register your company, list products and connect with buyers and agents worldwide.</p>
         </div>
-    </div>
-
-    <!-- 3. MAIN AUTHENTICATION PANEL -->
-    <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-4xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden border border-gray-800">
-            
-            <!-- Left Side: Branding -->
-            <div class="p-8 lg:p-12 bg-gradient-to-br from-[#0a0a0a] to-[#111111] flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
-                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-bizblue/10 rounded-full blur-3xl"></div>
-                
-                <div class="relative z-10">
-                    <h1 class="text-4xl font-bold text-bizblue mb-1">Bizlink</h1>
-                    <p class="text-gold font-medium tracking-widest text-xs uppercase opacity-90">Golden's Business</p>
-                </div>
-                
-                <div class="relative z-10 my-12">
-                    <h2 class="text-2xl font-bold text-white mb-6 leading-tight">The Ultimate B2B<br>Networking Hub.</h2>
-                    <ul class="space-y-4 text-sm text-gray-400">
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-box text-gold text-xs"></i></div> Unlimited Products</li>
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-play text-bizblue text-xs"></i></div> Global Network</li>
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-video text-gold text-xs"></i></div> Live Showcase</li>
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-robot text-bizblue text-xs"></i></div> AI Analytics</li>
-                    </ul>
-                </div>
-                
-                <div class="relative z-10 flex space-x-4 text-gray-600 text-sm">
-                    <a href="#" class="hover:text-gold transition">Terms</a>
-                    <a href="#" class="hover:text-gold transition">Privacy</a>
-                </div>
+        <div class="right">
+            <div id="tabs">
+                <button onclick="switchTab('signin')" id="tab-signin" style="margin-right:.5rem;background:transparent;border:none;color:var(--gold);font-weight:700">Sign In</button>
+                <button onclick="switchTab('signup')" id="tab-signup" style="background:transparent;border:none;color:#999">Register</button>
             </div>
 
-            <!-- Right Side: Forms -->
-            <div class="p-8 lg:p-12 relative bg-[#111111]">
-                
-                <!-- Tab Nav -->
-                <div class="flex space-x-8 mb-8 border-b border-gray-800 pb-0 relative">
-                    <button onclick="switchTab('signin')" id="tab-signin" class="text-gold font-semibold pb-3 px-1 relative">
-                        Sign In
-                        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t"></div>
-                    </button>
-                    <button onclick="switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition">
-                        Register
-                        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>
-                    </button>
+            <div id="toast-msg" style="display:none;margin-top:.8rem;padding:.6rem;border-radius:8px"></div>
+
+            <!-- Signin -->
+            <form id="form-signin" onsubmit="handleLogin(event)" style="margin-top:1rem">
+                <div style="margin-bottom:.6rem"><label style="font-size:.85rem;color:#bbb">Email</label><input id="login-email" class="input-g" type="email" required></div>
+                <div style="margin-bottom:.6rem"><label style="font-size:.85rem;color:#bbb">Password</label><input id="login-password" class="input-g" type="password" required></div>
+                <div style="margin-top:1rem"><button id="btn-login" class="btn-gold" type="submit">Sign In</button></div>
+            </form>
+
+            <!-- Signup -->
+            <form id="form-signup" onsubmit="handleSignup(event)" style="display:none;margin-top:1rem">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+                    <input id="reg-company" class="input-g" placeholder="Company name" required>
+                    <input id="reg-name" class="input-g" placeholder="Your name" required>
                 </div>
+                <div style="margin-top:.6rem"><input id="reg-email" class="input-g" type="email" placeholder="Email" required></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem">
+                    <input id="reg-password" class="input-g" type="password" placeholder="Password" required>
+                    <input id="reg-confirm" class="input-g" type="password" placeholder="Confirm" required>
+                </div>
+                <div style="margin-top:1rem"><button id="btn-signup" class="btn-gold" type="submit">Create Account</button></div>
+            </form>
 
-                <!-- Toast -->
-                <div id="toast-msg" class="hidden transform transition-all duration-300 -translate-y-2 opacity-0 p-3 rounded mb-4 text-sm font-medium border"></div>
-
-                <!-- Sign In Form -->
-                <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-5">
-                    <button type="button" onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 font-semibold p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
-                        <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                        Continue with Google
-                    </button>
-                    
-                    <div class="flex items-center my-2 opacity-60">
-                        <div class="flex-1 border-t border-gray-700"></div>
-                        <div class="px-3 text-[10px] uppercase tracking-wider text-gray-400">Or Email</div>
-                        <div class="flex-1 border-t border-gray-700"></div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Email Address</label>
-                        <input type="email" id="login-email" class="input-g" required placeholder="name@company.com">
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-end mb-1.5">
-                            <label class="block text-xs font-medium text-gray-400">Password</label>
-                            <a href="#" onclick="showForgotPassword(); return false;" class="text-[11px] text-gold hover:underline">Forgot?</a>
-                        </div>
-                        <div class="relative">
-                            <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
-                            <i class="fa-regular fa-eye absolute right-4 top-3.5 text-gray-500 cursor-pointer hover:text-gold transition" onclick="togglePassword('login-password')"></i>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" id="btn-login" class="btn-gold w-full mt-4 flex justify-center items-center">
-                        Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>
-                    </button>
-                </form>
-
-                <!-- Sign Up Form -->
-                <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[65vh] overflow-y-auto pr-3 custom-scrollbar">
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                            <label class="block text-xs text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="reg-company" class="input-g" required placeholder="Your Company">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Full Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="reg-name" class="input-g" required placeholder="John Doe">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
-                            <select id="reg-country" class="input-g" required>
-                                <option value="">Select Country</option>
-                                <option value="UAE">United Arab Emirates</option>
-                                <option value="USA">United States</option>
-                                <option value="IND">India</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="SAU">Saudi Arabia</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Email <span class="text-red-500">*</span></label>
-                        <input type="email" id="reg-email" class="input-g" required placeholder="contact@company.com">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
-                            <input type="password" id="reg-password" class="input-g" required minlength="8" placeholder="••••••••">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-400 mb-1">Confirm <span class="text-red-500">*</span></label>
-                            <input type="password" id="reg-confirm" class="input-g" required placeholder="••••••••">
-                        </div>
-                    </div>
-
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="terms-agree" required class="w-4 h-4">
-                        <span class="text-xs text-gray-400">I agree to Terms & Conditions</span>
-                    </label>
-
-                    <button type="submit" id="btn-signup" class="btn-gold w-full mt-4">
-                        Create Account
-                    </button>
-                </form>
-
-                <!-- Forgot Password -->
-                <form id="form-forgot" onsubmit="handleOTP(event)" class="hidden space-y-4">
-                    <h3 class="text-xl font-bold text-white mb-1">Reset Password</h3>
-                    <p class="text-xs text-gray-400 mb-6">Enter your email to receive recovery link.</p>
-                    
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Email</label>
-                        <input type="email" id="otp-email" class="input-g" required placeholder="name@company.com">
-                    </div>
-                    
-                    <button type="submit" id="btn-otp" class="btn-gold w-full mt-4">Send Reset Link</button>
-                    <button type="button" onclick="switchTab('signin'); return false;" class="w-full mt-4 text-xs text-gray-500 hover:text-white transition">Back to Sign In</button>
-                </form>
-
-            </div>
         </div>
     </div>
+</div>
 
-    <!-- 4. DASHBOARD - Home Page with Bottom Bar -->
-    <div id="dashboard-container" class="hidden-app h-screen flex flex-col bg-dark-900">
-        <!-- Top Bar -->
-        <header class="bg-dark-800 border-b border-gray-800 p-4 flex justify-between items-center z-20 shadow-md sticky top-0">
-            <div class="text-xl font-bold text-bizblue">Bizlink</div>
-            <div class="flex items-center space-x-4">
-                <button class="text-gray-400 hover:text-white relative transition">
-                    <i class="fa-solid fa-bell text-lg"></i>
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                </button>
-                <div id="user-avatar" class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer hover:opacity-80 transition" onclick="logout()" title="Click to logout">
-                    C
+<!-- DASHBOARD -->
+<div id="dashboard-container" class="hidden-app">
+    <header class="topbar">
+        <div style="font-weight:800;color:var(--bizblue)">Bizlink</div>
+        <div style="display:flex;gap:.6rem;align-items:center">
+            <button style="background:transparent;border:none;color:#ccc" title="Notifications"><i class="fa-solid fa-bell"></i></button>
+            <div id="user-avatar" style="width:36px;height:36px;border-radius:999px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#050505;font-weight:700;cursor:pointer" onclick="logout()">C</div>
+        </div>
+    </header>
+    <main class="content">
+        <div style="max-width:900px;margin:0 auto">
+            <h2 id="welcome-msg">Welcome</h2>
+            <p style="color:#bbb">This is your main hub. Use the bottom navigation to move between modules.</p>
+
+            <section style="margin-top:1rem;background:#0b0b0b;padding:1rem;border-radius:10px">
+                <h3 style="margin:0 0 .5rem 0">Recommended Products</h3>
+                <div style="display:flex;gap:.75rem;overflow:auto;padding-bottom:.5rem">
+                    <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Gold Watch<br><span style="color:var(--gold)">$4,999</span></div>
+                    <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Steel Pipe<br><span style="color:var(--gold)">$1,200</span></div>
+                    <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Circuit Boards<br><span style="color:var(--gold)">$850</span></div>
                 </div>
-            </div>
-        </header>
-        
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto custom-scrollbar pb-24">
-            <div class="max-w-4xl mx-auto p-4 space-y-6">
-                <!-- Welcome -->
-                <div class="bg-gradient-to-r from-bizblue/20 to-gold/20 rounded-xl p-6 border border-gray-800">
-                    <h2 class="text-2xl font-bold text-white mb-2">Welcome to Bizlink! 🚀</h2>
-                    <p id="welcome-msg" class="text-sm text-gray-300">Discover global business opportunities</p>
-                </div>
+            </section>
+        </div>
+    </main>
 
-                <!-- Products Grid -->
-                <div class="bg-dark-800 rounded-xl p-6 border border-gray-800">
-                    <h3 class="text-lg font-bold text-white mb-4">Featured Products</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition cursor-pointer">
-                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
-                            <div class="text-sm text-white font-medium">Gold Watch</div>
-                            <div class="text-xs text-gold">$4,999</div>
-                        </div>
-                        <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition cursor-pointer">
-                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
-                            <div class="text-sm text-white font-medium">Steel Pipe</div>
-                            <div class="text-xs text-gold">$1,200</div>
-                        </div>
-                        <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition cursor-pointer">
-                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
-                            <div class="text-sm text-white font-medium">Electronics</div>
-                            <div class="text-xs text-gold">$599</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+    <nav class="bottombar" role="navigation">
+        <button id="nav-home" onclick="navigateTo('home')" class="active"><i class="fa-solid fa-house"></i><span style="font-size:.7rem">Home</span></button>
+        <button id="nav-reels" onclick="navigateTo('reels')"><i class="fa-solid fa-play"></i><span style="font-size:.7rem">Reels</span></button>
+        <button id="nav-add" onclick="navigateTo('add')"><div style="width:44px;height:44px;border-radius:999px;background:var(--bizblue);display:flex;align-items:center;justify-content:center;color:#fff"><i class="fa-solid fa-plus"></i></div></button>
+        <button id="nav-products" onclick="navigateTo('products')"><i class="fa-solid fa-box-open"></i><span style="font-size:.7rem">Products</span></button>
+        <button id="nav-profile" onclick="navigateTo('profile')"><i class="fa-solid fa-user"></i><span style="font-size:.7rem">Profile</span></button>
+    </nav>
+</div>
 
-        <!-- Bottom Navigation Bar -->
-        <nav class="fixed bottom-0 left-0 w-full bg-dark-800 border-t border-gray-800 z-30 shadow-2xl">
-            <div class="max-w-7xl mx-auto px-2">
-                <div class="flex justify-around items-center">
-                    <!-- Home -->
-                    <button onclick="navigateTo('home')" class="flex flex-col items-center justify-center py-3 px-4 text-gold flex-1 hover:bg-dark-700 rounded-t transition">
-                        <i class="fa-solid fa-house text-xl mb-1"></i>
-                        <span class="text-[10px] font-medium">Home</span>
-                    </button>
-                    
-                    <!-- Browse -->
-                    <button onclick="navigateTo('browse')" class="flex flex-col items-center justify-center py-3 px-4 text-gray-500 flex-1 hover:text-gray-300 hover:bg-dark-700 rounded-t transition">
-                        <i class="fa-solid fa-compass text-xl mb-1"></i>
-                        <span class="text-[10px] font-medium">Browse</span>
-                    </button>
-                    
-                    <!-- Add (Center) -->
-                    <button onclick="navigateTo('add')" class="flex flex-col items-center justify-center py-2 px-4 flex-1 -mt-4">
-                        <div class="bg-gradient-to-r from-bizblue to-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition mb-1">
-                            <i class="fa-solid fa-plus text-lg"></i>
-                        </div>
-                        <span class="text-[10px] font-medium text-gray-300">Add</span>
-                    </button>
-                    
-                    <!-- Orders -->
-                    <button onclick="navigateTo('orders')" class="flex flex-col items-center justify-center py-3 px-4 text-gray-500 flex-1 hover:text-gray-300 hover:bg-dark-700 rounded-t transition">
-                        <i class="fa-solid fa-inbox text-xl mb-1"></i>
-                        <span class="text-[10px] font-medium">Orders</span>
-                    </button>
-                    
-                    <!-- Profile -->
-                    <button onclick="navigateTo('profile')" class="flex flex-col items-center justify-center py-3 px-4 text-gray-500 flex-1 hover:text-gray-300 hover:bg-dark-700 rounded-t transition">
-                        <i class="fa-solid fa-user text-xl mb-1"></i>
-                        <span class="text-[10px] font-medium">Profile</span>
-                    </button>
-                </div>
-            </div>
-        </nav>
-    </div>
+<script>
+// ---------- CONFIG
+const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU-nU7eF-mHH6Vt_tMK-zVg8Wgzk0X5t3a9kL8qU';
+let supabase = null;
+let isDemoMode = false;
+let currentUser = null;
 
-    <!-- Application Logic -->
-    <script>
-        const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU-nU7eF-mHH6Vt_tMK-zVg8Wgzk0X5t3a9kL8qU';
-        
-        let supabase;
-        let isDemoMode = false;
-        let currentUser = null;
-        let userRole = null;
+try { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn('Supabase init failed, demo mode'); isDemoMode = true }
 
-        // Initialize Supabase
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            console.error("Supabase Init Error:", e);
-            isDemoMode = true;
-        }
+// ---------- UTIL
+function el(id){ return document.getElementById(id) }
+function showToast(message, success=false){ const t=el('toast-msg'); t.style.display='block'; t.style.background= success? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.06)'; t.style.color= success? '#10b981' : '#ef4444'; t.textContent=message; setTimeout(()=>t.style.display='none',3500) }
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check existing session
-            await checkExistingSession();
-            
-            // Automatically close splash screen after 2 seconds
-            setTimeout(() => {
-                closeSplashScreen();
-            }, 1800);
-        });
+// ---------- SPLASH & INIT
+async function init(){
+    // Ensure splash will always hide (safety timer)
+    const safetyTimer = setTimeout(()=>{ hideSplashIfNeeded(); }, 4000);
 
-        async function checkExistingSession() {
-            const token = localStorage.getItem('bizlink_auth_token');
-            const email = localStorage.getItem('bizlink_email');
-            const role = localStorage.getItem('bizlink_role');
-            
-            if (token && email) {
-                // User already logged in
-                currentUser = { email: email };
-                userRole = role;
-                return true;
+    // First, attempt to restore session from Supabase if available
+    if(!isDemoMode && supabase){
+        try{
+            const { data: { session } } = await supabase.auth.getSession();
+            if(session && session.user){
+                currentUser = session.user;
+                localStorage.setItem('bizlink_auth_token', session.access_token || session.refresh_token || '');
+                localStorage.setItem('bizlink_email', session.user.email || '');
             }
-            return false;
-        }
-
-        function closeSplashScreen() {
-            const splash = document.getElementById('splash');
-            splash.classList.add('fade-out');
-            
-            setTimeout(() => {
-                splash.classList.add('hidden-app');
-                
-                // Check if user is already authenticated
-                const isLoggedIn = localStorage.getItem('bizlink_auth_token');
-                
-                if (isLoggedIn) {
-                    // Show dashboard
-                    showDashboard();
-                } else {
-                    // Show RBAC modal
-                    document.getElementById('rbac-modal').classList.remove('hidden-app');
-                }
-            }, 600);
-        }
-
-        function handleRoleSelection() {
-            userRole = document.querySelector('input[name="role"]:checked').value;
-            localStorage.setItem('bizlink_role', userRole);
-            
-            document.getElementById('rbac-modal').classList.add('hidden-app');
-            document.getElementById('auth-container').classList.remove('hidden-app');
-        }
-
-        // ==========================================
-        // UI FUNCTIONS
-        // ==========================================
-        function showToast(message, isError = true) {
-            const toast = document.getElementById('toast-msg');
-            toast.textContent = message;
-            
-            if (isError) {
-                toast.className = "bg-red-500/20 border border-red-500/50 text-red-400 p-3 rounded mb-4 text-sm font-medium opacity-100";
-            } else {
-                toast.className = "bg-green-500/20 border border-green-500/50 text-green-400 p-3 rounded mb-4 text-sm font-medium opacity-100";
-            }
-            
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3500);
-        }
-
-        function switchTab(tab) {
-            ['signin', 'signup', 'forgot'].forEach(t => {
-                document.getElementById(`form-${t}`).classList.add('hidden');
+            // Listen for auth changes (keeps session in sync)
+            supabase.auth.onAuthStateChange((event, session) => {
+                if(session && session.user){ currentUser = session.user; localStorage.setItem('bizlink_auth_token', session.access_token||''); localStorage.setItem('bizlink_email', session.user.email||''); }
+                if(event === 'SIGNED_OUT'){ currentUser = null; localStorage.removeItem('bizlink_auth_token'); localStorage.removeItem('bizlink_email'); }
             });
-            
-            const tabIn = document.getElementById('tab-signin');
-            const tabUp = document.getElementById('tab-signup');
+        }catch(e){ console.warn('session check failed', e) }
+    } else {
+        // demo fallback: check local token
+        if(localStorage.getItem('bizlink_auth_token')){
+            currentUser = { email: localStorage.getItem('bizlink_email') }
+        }
+    }
 
-            if (tab === 'signin') {
-                document.getElementById('form-signin').classList.remove('hidden');
-                tabIn.className = "text-gold font-semibold pb-3 px-1 relative";
-                tabUp.className = "text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition";
-            } else if (tab === 'signup') {
-                document.getElementById('form-signup').classList.remove('hidden');
-                tabUp.className = "text-gold font-semibold pb-3 px-1 relative";
-                tabIn.className = "text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition";
-            }
+    clearTimeout(safetyTimer);
+    hideSplashIfNeeded();
+}
+
+function hideSplashIfNeeded(){
+    const splash = el('splash');
+    if(!splash) return;
+
+    // if user is authenticated -> show dashboard
+    const token = localStorage.getItem('bizlink_auth_token');
+    if(currentUser || token){
+        splash.classList.add('hidden');
+        setTimeout(()=>{ showDashboard(); }, 250);
+        return;
+    }
+
+    // else show RBAC modal
+    splash.classList.add('hidden');
+    setTimeout(()=>{ el('rbac-modal').classList.remove('hidden-app') }, 260);
+}
+
+// ---------- RBAC
+document.getElementById('rbac-continue').addEventListener('click', ()=>{
+    const role = document.querySelector('input[name="role"]:checked').value;
+    localStorage.setItem('bizlink_role', role);
+    el('rbac-modal').classList.add('hidden-app');
+    el('auth-container').classList.remove('hidden-app');
+});
+
+// ---------- Tabs
+function switchTab(tab){
+    el('form-signin').style.display = tab==='signin'? 'block':'none';
+    el('form-signup').style.display = tab==='signup'? 'block':'none';
+    el('tab-signin').style.color = tab==='signin'? 'var(--gold)':'#999';
+    el('tab-signup').style.color = tab==='signup'? 'var(--gold)':'#999';
+}
+
+// ---------- AUTH HANDLERS
+async function handleLogin(e){
+    e.preventDefault();
+    const email = el('login-email').value.trim();
+    const password = el('login-password').value;
+    const btn = el('btn-login'); btn.disabled=true; btn.textContent='Signing in...';
+
+    try{
+        if(isDemoMode){
+            // simulate
+            await new Promise(r=>setTimeout(r,700));
+            localStorage.setItem('bizlink_auth_token','demo:'+Date.now());
+            localStorage.setItem('bizlink_email', email);
+            currentUser = { email };
+            showToast('Signed in (demo)', true);
+            el('auth-container').classList.add('hidden-app');
+            showDashboard();
+            return;
         }
 
-        function showForgotPassword() {
-            document.getElementById('form-signin').classList.add('hidden');
-            document.getElementById('form-signup').classList.add('hidden');
-            document.getElementById('form-forgot').classList.remove('hidden');
-        }
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if(error) throw error;
+        if(data && data.session && data.user){
+            localStorage.setItem('bizlink_auth_token', data.session.access_token || data.session.refresh_token || '');
+            localStorage.setItem('bizlink_email', data.user.email || '');
+            currentUser = data.user;
+            showToast('Signed in successfully', true);
+            el('auth-container').classList.add('hidden-app');
 
-        function togglePassword(inputId) {
-            const input = document.getElementById(inputId);
-            const icon = input.nextElementSibling;
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-
-        function navigateTo(section) {
-            showToast(`${section.charAt(0).toUpperCase() + section.slice(1)} section`, false);
-        }
-
-        // ==========================================
-        // AUTHENTICATION HANDLERS
-        // ==========================================
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            const pass = document.getElementById('login-password').value;
-            const btn = document.getElementById('btn-login');
-
-            if (!email || !pass) {
-                showToast("Please fill all fields");
-                return;
+            // redirect salesman to 2index.html if role set
+            const role = localStorage.getItem('bizlink_role');
+            if(role === 'salesman'){
+                // if 2index.html exists it will navigate there, otherwise show dashboard
+                try{ window.location.href = '2index.html'; return;}catch(e){}
             }
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in...';
-
-            if (isDemoMode) {
-                await new Promise(r => setTimeout(r, 1000));
-                localStorage.setItem('bizlink_auth_token', 'demo_token_' + Date.now());
-                localStorage.setItem('bizlink_email', email);
-                currentUser = { email: email };
-                showToast("Login Successful!", false);
-                
-                setTimeout(() => {
-                    document.getElementById('auth-container').classList.add('hidden-app');
-                    showDashboard();
-                }, 500);
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: pass,
-                });
-
-                if (error) {
-                    showToast(error.message);
-                } else {
-                    localStorage.setItem('bizlink_auth_token', data.session.access_token);
-                    localStorage.setItem('bizlink_email', data.user.email);
-                    currentUser = data.user;
-                    showToast("Login Successful!", false);
-                    
-                    setTimeout(() => {
-                        document.getElementById('auth-container').classList.add('hidden-app');
-                        showDashboard();
-                    }, 500);
-                }
-            } catch(e) {
-                showToast("Login error: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>';
-            }
-        }
-
-        async function handleGoogleLogin() {
-            showToast("Google login - Demo mode", false);
-            await new Promise(r => setTimeout(r, 1000));
-            localStorage.setItem('bizlink_auth_token', 'google_' + Date.now());
-            localStorage.setItem('bizlink_email', 'user@google.com');
-            currentUser = { email: 'user@google.com' };
-            
-            document.getElementById('auth-container').classList.add('hidden-app');
             showDashboard();
         }
+    }catch(err){
+        showToast(err.message || 'Sign in failed');
+    }finally{ btn.disabled=false; btn.textContent='Sign In' }
+}
 
-        async function handleSignup(e) {
-            e.preventDefault();
-            
-            const company = document.getElementById('reg-company').value.trim();
-            const name = document.getElementById('reg-name').value.trim();
-            const country = document.getElementById('reg-country').value;
-            const email = document.getElementById('reg-email').value.trim();
-            const pass = document.getElementById('reg-password').value;
-            const conf = document.getElementById('reg-confirm').value;
-            const agreed = document.getElementById('terms-agree').checked;
+async function handleSignup(e){
+    e.preventDefault();
+    const company = el('reg-company').value.trim();
+    const name = el('reg-name').value.trim();
+    const email = el('reg-email').value.trim();
+    const password = el('reg-password').value;
+    const conf = el('reg-confirm').value;
+    const btn = el('btn-signup'); btn.disabled=true; btn.textContent='Creating...';
 
-            if (!company || !name || !country || !email || !pass) {
-                showToast("Please fill all fields");
-                return;
-            }
-            if (pass.length < 8) {
-                showToast("Password must be at least 8 characters");
-                return;
-            }
-            if (pass !== conf) {
-                showToast("Passwords do not match");
-                return;
-            }
-            if (!agreed) {
-                showToast("Please agree to Terms & Conditions");
-                return;
-            }
+    if(password!==conf){ showToast('Passwords do not match'); btn.disabled=false; btn.textContent='Create Account'; return }
 
-            const btn = document.getElementById('btn-signup');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
+    try{
+        if(isDemoMode){ await new Promise(r=>setTimeout(r,900)); showToast('Account created (demo)',true); switchTab('signin'); el('form-signup').reset(); return }
 
-            if (isDemoMode) {
-                await new Promise(r => setTimeout(r, 2000));
-                showToast("Account created successfully!", false);
-                switchTab('signin');
-                document.getElementById('form-signup').reset();
-                btn.disabled = false;
-                btn.innerHTML = 'Create Account';
-                return;
-            }
+        const { data, error } = await supabase.auth.signUp({ email, password, options:{ data:{ full_name:name, company_name:company } } });
+        if(error) throw error;
+        showToast('Account created — check your email to verify', true);
+        switchTab('signin'); el('form-signup').reset();
+    }catch(err){ showToast(err.message || 'Signup failed') }
+    finally{ btn.disabled=false; btn.textContent='Create Account' }
+}
 
-            try {
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: pass,
-                    options: {
-                        data: { 
-                            full_name: name,
-                            company_name: company 
-                        }
-                    }
-                });
+async function handleOTP(e){ e.preventDefault(); const email = el('otp-email').value.trim(); if(!email){ showToast('Enter email'); return } try{ if(isDemoMode){ showToast('Recovery link sent (demo)', true); return } const { error } = await supabase.auth.resetPasswordForEmail(email); if(error) throw error; showToast('Recovery email sent', true); }catch(err){ showToast(err.message || 'Failed') } }
 
-                if (authError) {
-                    showToast(authError.message);
-                } else {
-                    showToast("Account created! Check email to verify.", false);
-                    switchTab('signin');
-                    document.getElementById('form-signup').reset();
-                }
-            } catch(e) {
-                showToast("Signup error: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Create Account';
-            }
-        }
+// ---------- DASHBOARD & NAV
+function showDashboard(){
+    el('splash').classList.add('hidden');
+    el('rbac-modal').classList.add('hidden-app');
+    el('auth-container').classList.add('hidden-app');
+    el('dashboard-container').classList.remove('hidden-app');
 
-        async function handleOTP(e) {
-            e.preventDefault();
-            const email = document.getElementById('otp-email').value.trim();
-            const btn = document.getElementById('btn-otp');
-            
-            if (!email) {
-                showToast("Please enter your email");
-                return;
-            }
+    // personalize
+    const email = localStorage.getItem('bizlink_email') || (currentUser && currentUser.email) || '';
+    if(email) el('user-avatar').textContent = email.charAt(0).toUpperCase();
+    const role = localStorage.getItem('bizlink_role') || 'User';
+    el('welcome-msg').textContent = `Welcome ${role.charAt(0).toUpperCase() + role.slice(1)} — Explore opportunities`;
+}
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+function logout(){
+    if(!confirm('Are you sure you want to logout?')) return;
+    try{ if(!isDemoMode && supabase) supabase.auth.signOut(); }catch(e){}
+    localStorage.removeItem('bizlink_auth_token'); localStorage.removeItem('bizlink_email'); localStorage.removeItem('bizlink_role');
+    currentUser = null; el('dashboard-container').classList.add('hidden-app'); el('rbac-modal').classList.remove('hidden-app');
+}
 
-            if(isDemoMode) {
-                await new Promise(r => setTimeout(r, 1000));
-                showToast("Recovery link sent!", false);
-                document.getElementById('otp-email').value = '';
-                switchTab('signin');
-                btn.disabled = false;
-                btn.innerHTML = 'Send Reset Link';
-                return;
-            }
+function navigateTo(s){ showToast(s+' (demo navigation)', true) }
 
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email);
-                if (error) {
-                    showToast(error.message);
-                } else {
-                    showToast("Recovery link sent to email!", false);
-                    document.getElementById('otp-email').value = '';
-                    switchTab('signin');
-                }
-            } catch(e) {
-                showToast("Error: " + e.message);
-            }
-            
-            btn.disabled = false;
-            btn.innerHTML = 'Send Reset Link';
-        }
+// attach handlers
+el('form-signin').addEventListener('submit', handleLogin);
+el('form-signup').addEventListener('submit', handleSignup);
+el('form-forgot')?.addEventListener('submit', handleOTP);
 
-        // ==========================================
-        // DASHBOARD & LOGOUT
-        // ==========================================
-        function showDashboard() {
-            document.getElementById('splash').classList.add('hidden-app');
-            document.getElementById('rbac-modal').classList.add('hidden-app');
-            document.getElementById('auth-container').classList.add('hidden-app');
-            
-            const dashboard = document.getElementById('dashboard-container');
-            dashboard.classList.remove('hidden-app');
-            dashboard.style.opacity = '0';
-            
-            // Set user avatar
-            if (currentUser && currentUser.email) {
-                const initial = currentUser.email.charAt(0).toUpperCase();
-                document.getElementById('user-avatar').textContent = initial;
-            }
-
-            // Update welcome message
-            const roleText = {
-                'owner': 'Business Owner',
-                'ceo': 'Executive',
-                'salesman': 'Sales Agent',
-                'visitor': 'Buyer'
-            };
-            const role = localStorage.getItem('bizlink_role') || 'User';
-            document.getElementById('welcome-msg').textContent = `Welcome ${roleText[role] || role}! Start exploring opportunities.`;
-            
-            setTimeout(() => {
-                dashboard.style.transition = 'opacity 0.5s ease';
-                dashboard.style.opacity = '1';
-            }, 50);
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('bizlink_auth_token');
-                localStorage.removeItem('bizlink_email');
-                localStorage.removeItem('bizlink_role');
-                currentUser = null;
-                userRole = null;
-                
-                document.getElementById('dashboard-container').classList.add('hidden-app');
-                document.getElementById('auth-container').classList.add('hidden-app');
-                document.getElementById('rbac-modal').classList.remove('hidden-app');
-                
-                // Reset forms
-                switchTab('signin');
-                document.getElementById('form-signin').reset();
-                document.getElementById('form-signup').reset();
-                
-                showToast("Logged out successfully", false);
-            }
-        }
-    </script>
+// start
+init();
+</script>
 </body>
 </html>
