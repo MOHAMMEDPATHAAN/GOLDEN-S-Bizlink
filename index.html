@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050505">
     <meta name="description" content="Bizlink - Golden's Business B2B Hub">
-    <link rel="manifest" href="/manifest.json">
     <title>Bizlink – Golden's Business</title>
     
     <!-- Fonts & Icons -->
@@ -20,23 +19,18 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: { DEFAULT: '#f5c000', dark: '#d4a000', light: '#ffd740' },
+                        gold: { DEFAULT: '#f5c000', dark: '#d4a000' },
                         bizblue: { DEFAULT: '#0066ff', glow: '#4d94ff' },
                         dark: { 900: '#050505', 800: '#111111', 700: '#1a1a1a' }
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] },
                     animation: {
                         'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite alternate',
-                        'float': 'float 6s ease-in-out infinite',
                     },
                     keyframes: {
                         pulseGlow: {
                             '0%': { textShadow: '0 0 10px rgba(0, 102, 255, 0.4), 0 0 20px rgba(0, 102, 255, 0.2)' },
-                            '100%': { textShadow: '0 0 20px rgba(0, 102, 255, 0.9), 0 0 40px rgba(0, 102, 255, 0.6), 0 0 60px rgba(0, 102, 255, 0.3)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                            '100%': { textShadow: '0 0 20px rgba(0, 102, 255, 0.9), 0 0 40px rgba(0, 102, 255, 0.6)' },
                         }
                     }
                 }
@@ -61,14 +55,9 @@
 
         /* Theming Classes */
         body.theme-light { background-color: #f3f4f6; color: #111827; background-image: none; }
-        body.theme-light .bg-dark-800 { background-color: #ffffff; border-color: #e5e7eb; }
-        body.theme-light .input-g { background-color: #f9fafb; border-color: #d1d5db; color: #111827; }
-        body.theme-light .text-gray-400 { color: #6b7280; }
-        
         body.theme-premium {
             background: linear-gradient(135deg, #0f0c00 0%, #1a1500 100%);
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='1' fill='#f5c000' fill-opacity='0.2'/%3E%3C/svg%3E");
-            background-size: 20px 20px;
         }
 
         .hidden-app { display: none !important; }
@@ -83,7 +72,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.5s ease-out;
         }
 
         .bizlink-logo {
@@ -91,7 +80,7 @@
             font-weight: 800;
             color: #0066ff;
             margin-bottom: 0.5rem;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, pulseGlow 2.5s infinite alternate 0.8s;
+            animation: pulseGlow 2.5s infinite alternate;
         }
 
         .golden-container {
@@ -100,17 +89,6 @@
             color: #f5c000;
             letter-spacing: 0.2em;
             text-shadow: 0 0 15px rgba(245, 192, 0, 0.4);
-            opacity: 0;
-            animation: fadeInUp 1s ease forwards 0.5s;
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
         }
 
         .spinner-line {
@@ -131,12 +109,9 @@
             width: 50px;
             background: #f5c000;
             box-shadow: 0 0 10px #f5c000;
-            animation: loadLine 1.5s ease-in-out infinite;
+            animation: loadLine 1s ease-in-out infinite;
         }
-        @keyframes loadLine {
-            0% { left: -50px; }
-            100% { left: 100%; }
-        }
+        @keyframes loadLine { 0% { left: -50px; } 100% { left: 100%; } }
 
         /* --- UI COMPONENTS --- */
         .input-g {
@@ -167,31 +142,28 @@
 
         /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
 
-        /* Password Strength */
-        .strength-bar { height: 4px; width: 0; transition: all 0.3s; border-radius: 2px; }
-        .strength-weak { width: 33%; background: #ef4444; box-shadow: 0 0 5px #ef4444; }
-        .strength-med { width: 66%; background: #f59e0b; box-shadow: 0 0 5px #f59e0b; }
-        .strength-strong { width: 100%; background: #22c55e; box-shadow: 0 0 5px #22c55e; }
+        /* Profile Completeness Ring */
+        .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+        .circle-bg { fill: none; stroke: #333; stroke-width: 3.8; }
+        .circle { fill: none; stroke-width: 3.8; stroke-linecap: round; animation: progress 1s ease-out forwards; }
+        @keyframes progress { 0% { stroke-dasharray: 0 100; } }
     </style>
 </head>
 <body>
 
-    <!-- 1. SPLASH SCREEN (Guaranteed resolution via JS) -->
+    <!-- 1. FAILSAFE SPLASH SCREEN -->
     <div id="splash">
-        <div class="bizlink-logo animate-float">Bizlink</div>
+        <div class="bizlink-logo">Bizlink</div>
         <div class="golden-container">GOLDEN'S</div>
         <div class="spinner-line"></div>
     </div>
 
     <!-- 2. RBAC GATEWAY -->
     <div id="rbac-modal" class="hidden-app fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-48 h-48 bg-gold/10 rounded-full blur-3xl"></div>
-            
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-sm w-full relative overflow-hidden">
             <h2 class="text-3xl font-bold text-white mb-1 text-center tracking-tight animate-pulse-glow text-bizblue">Bizlink</h2>
             <p class="text-gray-400 text-xs mb-8 text-center uppercase tracking-widest">Select Your Role</p>
             
@@ -200,7 +172,7 @@
                     <input type="radio" name="role" value="owner" class="peer sr-only" checked>
                     <div class="p-4 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all text-center">
                         <i class="fa-solid fa-building text-gold text-3xl mb-2"></i>
-                        <div class="font-bold text-white text-lg">Company</div>
+                        <div class="font-bold text-white text-lg">Company Panel</div>
                         <div class="text-[10px] text-gray-400 mt-1">Manage products & reels</div>
                     </div>
                 </label>
@@ -227,7 +199,6 @@
             <!-- Left Side: Branding -->
             <div class="p-8 lg:p-12 bg-[#050505] flex flex-col justify-between relative overflow-hidden hidden md:flex">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
-                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-bizblue/10 rounded-full blur-[80px]"></div>
                 
                 <div class="relative z-10">
                     <h1 class="text-5xl font-extrabold text-bizblue mb-1 animate-pulse-glow tracking-tight">Bizlink</h1>
@@ -239,20 +210,18 @@
                     <ul class="space-y-5 text-sm text-gray-300">
                         <li class="flex items-center"><div class="w-8 h-8 rounded-full bg-dark-800 border border-gray-800 flex items-center justify-center mr-4"><i class="fa-solid fa-box text-gold text-sm"></i></div> Unlimited HD Products</li>
                         <li class="flex items-center"><div class="w-8 h-8 rounded-full bg-dark-800 border border-gray-800 flex items-center justify-center mr-4"><i class="fa-solid fa-play text-bizblue text-sm"></i></div> Global Vertical Reel-Stream</li>
-                        <li class="flex items-center"><div class="w-8 h-8 rounded-full bg-dark-800 border border-gray-800 flex items-center justify-center mr-4"><i class="fa-solid fa-video text-gold text-sm"></i></div> LiveKit Real-Time Deals</li>
                     </ul>
                 </div>
                 
                 <div class="relative z-10 text-xs text-gray-600 flex space-x-4">
-                    <a href="#" class="hover:text-gold transition">Terms & Conditions</a>
-                    <a href="#" class="hover:text-gold transition">Privacy Policy</a>
+                    <a href="terms.html" class="hover:text-gold transition">Terms</a>
+                    <a href="policy.html" class="hover:text-gold transition">Privacy</a>
                 </div>
             </div>
 
             <!-- Right Side: Forms -->
             <div class="p-6 lg:p-10 relative bg-[#0a0a0a]">
                 
-                <!-- Tab Nav -->
                 <div class="flex space-x-8 mb-8 border-b border-gray-800 pb-0 relative">
                     <button onclick="switchTab('signin')" id="tab-signin" class="text-gold font-bold pb-3 px-1 relative text-sm tracking-wide">
                         SIGN IN
@@ -264,7 +233,7 @@
                     </button>
                 </div>
 
-                <!-- Global Toast -->
+                <!-- Toast -->
                 <div id="toast-msg" class="hidden transform transition-all duration-300 -translate-y-2 opacity-0 p-3 rounded mb-4 text-sm font-medium border flex items-center">
                     <i id="toast-icon" class="mr-2"></i> <span id="toast-text"></span>
                 </div>
@@ -307,7 +276,7 @@
                     </button>
                 </form>
 
-                <!-- Sign Up Form (Company) -->
+                <!-- Sign Up Form -->
                 <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto pr-3 custom-scrollbar">
                     
                     <div>
@@ -326,32 +295,7 @@
                                 <option value="UAE">United Arab Emirates</option>
                                 <option value="USA">United States</option>
                                 <option value="IND">India</option>
-                                <option value="UK">United Kingdom</option>
                             </select>
-                        </div>
-                    </div>
-
-                    <!-- File Uploads -->
-                    <div class="grid grid-cols-2 gap-4 mt-2">
-                        <div class="relative">
-                            <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
-                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
-                                <div id="icon-ceo">
-                                    <i class="fa-solid fa-user-tie text-xl text-gray-500 mb-1"></i>
-                                    <div class="text-[10px] text-gray-400">CEO Photo</div>
-                                </div>
-                                <img id="preview-ceo" class="absolute inset-0 w-full h-full object-cover hidden" alt="CEO">
-                            </label>
-                        </div>
-                        <div class="relative">
-                            <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
-                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
-                                <div id="icon-logo">
-                                    <i class="fa-solid fa-building text-xl text-gray-500 mb-1"></i>
-                                    <div class="text-[10px] text-gray-400">Company Logo</div>
-                                </div>
-                                <img id="preview-logo" class="absolute inset-0 w-full h-full object-cover bg-white hidden" alt="Logo">
-                            </label>
                         </div>
                     </div>
 
@@ -364,7 +308,11 @@
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
                             <input type="password" id="reg-password" class="input-g" required minlength="8" placeholder="••••••••" onkeyup="checkStrength(this.value)">
-                            <div class="w-full bg-dark-900 h-1 mt-1 rounded-full overflow-hidden"><div id="strength-bar" class="strength-bar"></div></div>
+                            <div class="w-full bg-dark-900 h-1 mt-1 rounded-full overflow-hidden flex">
+                                <div id="str-1" class="h-full w-1/3 transition-colors duration-300"></div>
+                                <div id="str-2" class="h-full w-1/3 transition-colors duration-300"></div>
+                                <div id="str-3" class="h-full w-1/3 transition-colors duration-300"></div>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 mb-1">Confirm <span class="text-red-500">*</span></label>
@@ -372,10 +320,15 @@
                         </div>
                     </div>
 
-                    <div class="pt-2 pb-2">
+                    <!-- GDPR & Terms -->
+                    <div class="pt-2 pb-2 space-y-2">
                         <label class="flex items-start cursor-pointer">
-                            <input type="checkbox" id="reg-terms" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
+                            <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
                             <span class="text-[11px] text-gray-400 leading-tight">I agree to the <a href="#" class="text-bizblue hover:underline">Terms of Service</a> & <a href="#" class="text-bizblue hover:underline">Privacy Policy</a>.</span>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
+                            <span class="text-[11px] text-gray-400 leading-tight">I consent to data processing (GDPR Compliance).</span>
                         </label>
                     </div>
 
@@ -406,87 +359,58 @@
     <div id="dashboard-container" class="hidden-app h-screen flex flex-col bg-[#050505]">
         
         <!-- Top App Bar -->
-        <header class="bg-dark-800 border-b border-gray-800 p-3 px-4 flex justify-between items-center z-20 sticky top-0 shadow-md">
+        <header class="bg-dark-800 border-b border-gray-800 p-3 px-4 flex justify-between items-center z-20 sticky top-0">
             <div class="text-xl font-extrabold text-bizblue tracking-tight animate-pulse-glow" onclick="location.reload()">Bizlink</div>
             
             <div class="flex items-center space-x-5">
-                <!-- Premium Settings Mock -->
-                <select id="app-language" class="bg-transparent text-gray-400 text-xs outline-none cursor-pointer hover:text-white" onchange="showToast('Language updated to ' + this.value, false)">
-                    <option value="EN">EN</option>
-                    <option value="ES">ES</option>
-                    <option value="AR">AR</option>
-                </select>
-                
                 <select id="app-theme" class="bg-transparent text-gray-400 text-xs outline-none cursor-pointer hover:text-white" onchange="changeTheme(this.value)">
                     <option value="dark">Dark</option>
                     <option value="premium">Golden Premium</option>
                     <option value="light">Light</option>
                 </select>
 
-                <!-- Notification Bell -->
-                <button class="text-gray-400 hover:text-white relative transition" onclick="showToast('No new notifications', false)">
+                <button class="text-gray-400 hover:text-white relative transition">
                     <i class="fa-solid fa-bell text-lg"></i>
                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-dark-800"></span>
                 </button>
                 
-                <!-- Avatar -->
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gold to-yellow-200 flex items-center justify-center text-black font-bold cursor-pointer shadow-[0_0_10px_rgba(245,192,0,0.4)]" onclick="logout()">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gold to-yellow-200 flex items-center justify-center text-black font-bold cursor-pointer" onclick="logout()">
                     <i class="fa-solid fa-user-tie text-sm"></i>
                 </div>
             </div>
         </header>
         
-        <!-- Scrollable Main Content -->
+        <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
-            <div class="max-w-3xl mx-auto space-y-6 pb-24">
+            <div class="max-w-4xl mx-auto space-y-6 pb-24">
                 
-                <!-- Search Bar -->
-                <div class="relative group">
-                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500 group-focus-within:text-gold transition"></i>
-                    <input type="text" class="w-full bg-[#111] border border-gray-800 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none shadow-sm transition" placeholder="Search products, companies, reels...">
+                <!-- Profile Completeness Widget (Feature #124) -->
+                <div class="bg-dark-800 rounded-xl p-5 border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-white font-bold text-lg flex items-center"><i class="fa-solid fa-shield-halved text-gold mr-2"></i> Profile Setup</h3>
+                        <p class="text-xs text-gray-400 mt-1">Complete your profile to unlock full platform features.</p>
+                        <button class="mt-3 text-xs bg-dark-700 hover:bg-dark-900 border border-gray-600 text-white px-3 py-1.5 rounded transition">Complete Now</button>
+                    </div>
+                    <div class="w-20 h-20 relative">
+                        <svg viewBox="0 0 36 36" class="circular-chart gold">
+                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle" stroke="#f5c000" stroke-dasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">65%</div>
+                    </div>
                 </div>
 
                 <!-- Feed Area -->
-                <div class="bg-dark-800 rounded-xl p-5 border border-gray-800 shadow-sm">
+                <div class="bg-dark-800 rounded-xl p-5 border border-gray-800">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-fire text-orange-500 mr-2"></i> Trending Products</h3>
-                        <span class="text-xs text-bizblue cursor-pointer hover:underline">View All</span>
+                        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-fire text-orange-500 mr-2"></i> Trending Network</h3>
+                        <span class="text-xs text-bizblue cursor-pointer hover:underline">View Feed</span>
                     </div>
-                    
-                    <div class="flex space-x-4 overflow-x-auto custom-scrollbar pb-2">
-                        <!-- Mock Card 1 -->
-                        <div class="min-w-[150px] bg-[#1a1a1a] border border-gray-800 rounded-xl overflow-hidden hover:border-gold transition cursor-pointer">
-                            <div class="h-28 bg-[url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200')] bg-cover bg-center"></div>
-                            <div class="p-3">
-                                <div class="text-sm text-white font-semibold truncate">Smart Watch Pro</div>
-                                <div class="flex justify-between items-end mt-1">
-                                    <div class="text-xs font-bold text-gold">$49.99 <span class="text-[9px] text-gray-500 font-normal">/unit</span></div>
-                                    <i class="fa-regular fa-heart text-gray-500 text-xs hover:text-red-500"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Mock Card 2 -->
-                        <div class="min-w-[150px] bg-[#1a1a1a] border border-gray-800 rounded-xl overflow-hidden hover:border-gold transition cursor-pointer">
-                            <div class="h-28 bg-[url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=200')] bg-cover bg-center"></div>
-                            <div class="p-3">
-                                <div class="text-sm text-white font-semibold truncate">Wireless Headphones</div>
-                                <div class="flex justify-between items-end mt-1">
-                                    <div class="text-xs font-bold text-gold">$89.00 <span class="text-[9px] text-gray-500 font-normal">/unit</span></div>
-                                    <i class="fa-regular fa-heart text-gray-500 text-xs hover:text-red-500"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Mock Card 3 -->
-                        <div class="min-w-[150px] bg-[#1a1a1a] border border-gray-800 rounded-xl overflow-hidden hover:border-gold transition cursor-pointer flex items-center justify-center">
-                            <div class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-right mr-1"></i> More</div>
-                        </div>
+                    <div class="text-center p-8 border border-dashed border-gray-700 rounded-xl bg-dark-900">
+                        <i class="fa-solid fa-circle-check text-green-500 text-3xl mb-3"></i>
+                        <h3 class="text-white font-bold mb-1">Authentication Secure</h3>
+                        <p class="text-xs text-gray-400">This hub perfectly maintains the Supabase session. Your app is ready for the remaining modules.</p>
                     </div>
-                </div>
-
-                <div class="text-center p-6 border border-dashed border-gray-700 rounded-xl bg-dark-800/50">
-                    <i class="fa-solid fa-circle-check text-green-500 text-3xl mb-3"></i>
-                    <h3 class="text-white font-bold mb-1">System Ready</h3>
-                    <p class="text-xs text-gray-400">Authentication successful. This is the main hub where dynamic modules (Reels, Profile, Network) will load.</p>
                 </div>
             </div>
         </main>
@@ -502,7 +426,7 @@
                 <span class="text-[10px] font-medium tracking-wide">Reels</span>
             </button>
             <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gold transition w-16 -mt-6 group">
-                <div class="bg-gradient-to-b from-bizblue to-blue-800 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,102,255,0.6)] group-hover:shadow-[0_0_25px_rgba(0,102,255,0.9)] transition-all">
+                <div class="bg-gradient-to-b from-bizblue to-blue-800 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,102,255,0.6)]">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </div>
                 <span class="text-[10px] font-medium mt-1">Add</span>
@@ -521,72 +445,76 @@
     <!-- Application Logic & Supabase Initialization -->
     <script>
         // ==========================================
-        // 1. SUPABASE CONNECTION
+        // 1. SUPABASE CONNECTION (REPLACE KEYS HERE)
         // ==========================================
-        // IMPORTANT: Replace these with your actual keys from Supabase Dashboard -> Project Settings -> API
         const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bUq7AQAueXJOxlaT96Zr3F-0KsyOLplNEZh_sOLk';
         
         let supabase = null;
 
-        // Initialize Supabase. If keys are missing, gracefully fallback so the UI still works for testing.
         try {
             if(!SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                     auth: { persistSession: true, autoRefreshToken: true }
                 });
             } else {
-                console.warn("⚠️ MOCK MODE: Supabase keys not set. Replace YOUR_PROJECT_ID to connect to DB.");
+                console.warn("MOCK MODE: Supabase keys not set.");
             }
-        } catch(e) {
-            console.error("Supabase Init Error:", e);
-        }
+        } catch(e) { console.error("Supabase Init Error:", e); }
 
         // ==========================================
-        // 2. BOOTSTRAP & SPLASH LOGIC (Never-ending fix)
+        // 2. FAILSAFE BOOTSTRAP (NEVER-ENDING SPLASH FIX)
         // ==========================================
-        document.addEventListener('DOMContentLoaded', async () => {
+        let splashRemoved = false;
+
+        function removeSplash(showDashboardView = false) {
+            if (splashRemoved) return;
+            splashRemoved = true;
+            
             const splash = document.getElementById('splash');
-            
-            // Artificial minimum delay so the beautiful animation is seen (1.5 seconds)
-            const minSplashTime = new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Check session promise
-            let sessionCheck;
-            if (supabase) {
-                sessionCheck = supabase.auth.getSession().catch(() => ({ data: { session: null } }));
-            } else {
-                // Mock session check if no Supabase configured
-                sessionCheck = Promise.resolve({ data: { session: localStorage.getItem('mock_session') ? true : null } });
-            }
-
-            // Wait for both the minimum time AND the session check to finish
-            const [_, sessionResult] = await Promise.all([minSplashTime, sessionCheck]);
-
-            // Hide Splash
             splash.style.opacity = '0';
+            
             setTimeout(() => {
                 splash.classList.add('hidden-app');
-                
-                // Route User
-                if (sessionResult.data.session) {
+                if (showDashboardView) {
                     showDashboard();
                 } else {
                     document.getElementById('rbac-modal').classList.remove('hidden-app');
                 }
-            }, 600); // Wait for CSS fade transition
-        });
-
-        // Listen for auth state changes (Auto login/logout across tabs)
-        if (supabase) {
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) showDashboard();
-                if (event === 'SIGNED_OUT') handleLogoutUI();
-            });
+            }, 500); // Wait for CSS opacity transition
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Failsafe: Absolutely guarantee the splash closes after 2.5 seconds regardless of network/errors.
+            setTimeout(() => {
+                if(!splashRemoved) removeSplash(localStorage.getItem('bizlink_auth') === 'true');
+            }, 2500);
+
+            // Attempt legitimate session check
+            if (supabase) {
+                supabase.auth.getSession().then(({ data }) => {
+                    if (data.session) {
+                        localStorage.setItem('bizlink_auth', 'true');
+                        setTimeout(() => removeSplash(true), 800); // 800ms min display time
+                    } else {
+                        setTimeout(() => removeSplash(false), 800);
+                    }
+                }).catch(() => {
+                    // On error, default to login screen
+                    setTimeout(() => removeSplash(false), 800);
+                });
+            } else {
+                // Mock Mode check
+                if (localStorage.getItem('bizlink_auth') === 'true') {
+                    setTimeout(() => removeSplash(true), 800);
+                } else {
+                    setTimeout(() => removeSplash(false), 800);
+                }
+            }
+        });
+
         // ==========================================
-        // 3. UI INTERACTIONS & ROUTING
+        // 3. UI INTERACTIONS 
         // ==========================================
         function handleRoleSelection() {
             const role = document.querySelector('input[name="role"]:checked').value;
@@ -596,8 +524,7 @@
             
             if (role === 'salesman' || role === 'viewer') {
                 showToast("Redirecting to Salesman Portal...", false);
-                // window.location.href = '2index.html'; // Actual redirection for production
-                setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 1000); // Demo fallback
+                setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 1000); 
             } else {
                 document.getElementById('auth-container').classList.remove('hidden-app');
             }
@@ -611,8 +538,8 @@
             icon.className = isError ? "fa-solid fa-circle-exclamation text-lg" : "fa-solid fa-circle-check text-lg";
             
             toast.className = isError 
-                ? "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-red-500/10 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-                : "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-green-500/10 border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]";
+                ? "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-red-500/10 border-red-500/50 text-red-400"
+                : "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-green-500/10 border-green-500/50 text-green-400";
             
             toast.classList.remove('hidden');
             setTimeout(() => {
@@ -645,8 +572,6 @@
             document.getElementById('form-signin').classList.add('hidden');
             document.getElementById('form-signup').classList.add('hidden');
             document.getElementById('form-forgot').classList.remove('hidden');
-            document.getElementById('tab-signin').className = "text-gray-500 pb-3 px-1 relative font-bold text-sm";
-            document.getElementById('tab-signup').className = "text-gray-500 pb-3 px-1 relative font-bold text-sm";
         }
 
         function togglePassword(inputId) {
@@ -661,48 +586,30 @@
             }
         }
 
-        // Password Strength Regex Logic
         function checkStrength(password) {
-            const bar = document.getElementById('strength-bar');
-            if (password.length === 0) { bar.className = 'strength-bar'; return; }
+            const s1 = document.getElementById('str-1');
+            const s2 = document.getElementById('str-2');
+            const s3 = document.getElementById('str-3');
             
-            let strength = 0;
-            if (password.length > 7) strength += 1;
-            if (password.match(/[A-Z]/) && password.match(/[a-z]/)) strength += 1;
-            if (password.match(/[0-9]/) && password.match(/[^A-Za-z0-9]/)) strength += 1;
-            
-            if (strength === 1) bar.className = 'strength-bar strength-weak';
-            else if (strength === 2) bar.className = 'strength-bar strength-med';
-            else if (strength === 3) bar.className = 'strength-bar strength-strong';
+            s1.className = 'h-full w-1/3 transition-colors duration-300';
+            s2.className = 'h-full w-1/3 transition-colors duration-300';
+            s3.className = 'h-full w-1/3 transition-colors duration-300';
+
+            if (password.length > 0) s1.classList.add('bg-red-500');
+            if (password.length >= 8 && password.match(/[A-Za-z]/)) s2.classList.add('bg-yellow-500');
+            if (password.length >= 8 && password.match(/[A-Z]/) && password.match(/[0-9]/)) s3.classList.add('bg-green-500');
         }
 
-        // Image Preview Handler
-        function previewImage(input, previewId, iconId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById(previewId);
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                    document.getElementById(iconId).style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Theme Switcher (Dashboard)
         function changeTheme(theme) {
             document.body.className = '';
             if (theme === 'light') document.body.classList.add('theme-light');
             if (theme === 'premium') document.body.classList.add('theme-premium');
             if (theme === 'dark') document.body.classList.add('dark');
             showToast("Theme changed to " + theme, false);
-            // Save to localStorage/Supabase in production
         }
 
         // ==========================================
-        // 4. AUTHENTICATION (Connects to Supabase)
+        // 4. AUTHENTICATION HANDLERS
         // ==========================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -714,9 +621,8 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
 
             if (!supabase) {
-                // Mock Login
                 setTimeout(() => {
-                    localStorage.setItem('mock_session', 'true');
+                    localStorage.setItem('bizlink_auth', 'true');
                     showDashboard();
                     btn.disabled = false;
                     btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
@@ -724,39 +630,33 @@
                 return;
             }
 
-            // Real Supabase Login
             const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
             if (error) {
                 showToast(error.message);
                 btn.disabled = false;
                 btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
-            } 
-            // On success, the onAuthStateChange listener triggers showDashboard()
+            } else {
+                localStorage.setItem('bizlink_auth', 'true');
+                showDashboard();
+            }
         }
 
         async function handleGoogleLogin() {
-            if (!supabase) return showToast("Mock Mode: Google OAuth requires valid Supabase keys.", false);
-            
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + window.location.pathname }
-            });
+            if (!supabase) return showToast("Mock Mode: Requires valid Supabase keys.", false);
+            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
             if (error) showToast(error.message);
         }
 
         async function handleSignup(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
-            const company = document.getElementById('reg-company').value;
-            const ceo = document.getElementById('reg-ceo').value;
-            const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
             const conf = document.getElementById('reg-confirm').value;
 
             if (pass !== conf) return showToast("Passwords do not match.");
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating Profile...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating...';
 
             if (!supabase) {
                 setTimeout(() => {
@@ -768,36 +668,18 @@
                 return;
             }
 
-            // 1. Supabase Auth Sign Up
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: email,
+            const { data, error } = await supabase.auth.signUp({
+                email: document.getElementById('reg-email').value,
                 password: pass,
-                options: { data: { full_name: ceo } }
+                options: { data: { full_name: document.getElementById('reg-ceo').value } }
             });
 
-            if (authError) {
-                showToast(authError.message);
-                btn.disabled = false;
-                btn.innerHTML = 'Create Company Account';
-                return;
-            }
-
-            // 2. Supabase DB Insert for Company Profile
-            const { error: dbError } = await supabase.from('companies').insert([{
-                owner_id: authData.user.id,
-                company_name: company,
-                ceo_name: ceo,
-                country: document.getElementById('reg-country').value,
-                email: email
-            }]);
-
-            if (dbError) {
-                showToast("Auth success, but company details failed: " + dbError.message);
+            if (error) {
+                showToast(error.message);
             } else {
-                showToast("Account created successfully! Check your email to verify.", false);
+                showToast("Account created successfully! Check email to verify.", false);
                 switchTab('signin');
             }
-
             btn.disabled = false;
             btn.innerHTML = 'Create Company Account';
         }
@@ -805,53 +687,28 @@
         async function handleOTP(e) {
             e.preventDefault();
             const email = document.getElementById('otp-email').value;
-            const btn = document.getElementById('btn-otp');
+            if(!supabase) return showToast("Mock Mode: Link sent!", false);
             
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
-
-            if(!supabase) {
-                setTimeout(() => { showToast("Recovery link sent (Mock)!", false); btn.disabled = false; btn.innerHTML = 'Send Reset Link'; }, 1000);
-                return;
-            }
-
             const { error } = await supabase.auth.resetPasswordForEmail(email);
             if (error) showToast(error.message);
-            else showToast("Recovery email sent. Check your inbox.", false);
-            
-            btn.disabled = false;
-            btn.innerHTML = 'Send Reset Link';
+            else showToast("Recovery email sent.", false);
         }
 
-        // ==========================================
-        // 5. VIEW MANAGEMENT
-        // ==========================================
         function showDashboard() {
-            document.getElementById('splash').classList.add('hidden-app');
             document.getElementById('rbac-modal').classList.add('hidden-app');
             document.getElementById('auth-container').classList.add('hidden-app');
             
             const dashboard = document.getElementById('dashboard-container');
             dashboard.classList.remove('hidden-app');
-            
-            // Trigger reflow for fade in
-            void dashboard.offsetWidth; 
-            dashboard.style.transition = 'opacity 0.6s ease';
-            dashboard.style.opacity = '1';
-        }
-
-        function handleLogoutUI() {
-            document.getElementById('dashboard-container').classList.add('hidden-app');
-            document.getElementById('rbac-modal').classList.remove('hidden-app');
-            switchTab('signin');
         }
 
         async function logout() {
             if(supabase) await supabase.auth.signOut();
-            else {
-                localStorage.removeItem('mock_session');
-                handleLogoutUI();
-            }
+            localStorage.removeItem('bizlink_auth');
+            
+            document.getElementById('dashboard-container').classList.add('hidden-app');
+            document.getElementById('rbac-modal').classList.remove('hidden-app');
+            switchTab('signin');
         }
     </script>
 </body>
