@@ -19,18 +19,28 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: { DEFAULT: '#f5c000', dark: '#d4a000' },
+                        gold: { DEFAULT: '#f5c000', dark: '#d4a000', light: '#ffd740' },
                         bizblue: { DEFAULT: '#0066ff', glow: '#4d94ff' },
                         dark: { 900: '#050505', 800: '#111111', 700: '#1a1a1a' }
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] },
                     animation: {
                         'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite alternate',
+                        'slide-in-right': 'slideInRight 0.5s ease-out forwards',
+                        'slide-out-left': 'slideOutLeft 0.5s ease-in forwards',
                     },
                     keyframes: {
                         pulseGlow: {
                             '0%': { textShadow: '0 0 10px rgba(0, 102, 255, 0.4), 0 0 20px rgba(0, 102, 255, 0.2)' },
                             '100%': { textShadow: '0 0 20px rgba(0, 102, 255, 0.9), 0 0 40px rgba(0, 102, 255, 0.6)' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        slideOutLeft: {
+                            '0%': { transform: 'translateX(0)', opacity: '1' },
+                            '100%': { transform: 'translateX(-100%)', opacity: '0' },
                         }
                     }
                 }
@@ -47,17 +57,11 @@
             background-color: #050505;
             color: #ffffff;
             overflow-x: hidden;
+            /* Premium textured background */
             background-image: 
                 radial-gradient(circle at 50% -20%, #1a1a1a 0%, transparent 70%), 
                 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#f5c000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* Theming Classes */
-        body.theme-light { background-color: #f3f4f6; color: #111827; background-image: none; }
-        body.theme-premium {
-            background: linear-gradient(135deg, #0f0c00 0%, #1a1500 100%);
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='1' fill='#f5c000' fill-opacity='0.2'/%3E%3C/svg%3E");
         }
 
         .hidden-app { display: none !important; }
@@ -74,15 +78,13 @@
             justify-content: center;
             transition: opacity 0.5s ease-out;
         }
-
-        .bizlink-logo {
+        .bizlink-logo-splash {
             font-size: 4rem;
             font-weight: 800;
             color: #0066ff;
             margin-bottom: 0.5rem;
             animation: pulseGlow 2.5s infinite alternate;
         }
-
         .golden-container {
             font-size: 1.5rem;
             font-weight: 600;
@@ -90,73 +92,47 @@
             letter-spacing: 0.2em;
             text-shadow: 0 0 15px rgba(245, 192, 0, 0.4);
         }
-
         .spinner-line {
-            width: 150px;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
-            margin-top: 3rem;
-            position: relative;
-            overflow: hidden;
-            border-radius: 2px;
+            width: 150px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 3rem;
+            position: relative; overflow: hidden; border-radius: 2px;
         }
         .spinner-line::after {
-            content: '';
-            position: absolute;
-            left: -50px;
-            top: 0;
-            height: 100%;
-            width: 50px;
-            background: #f5c000;
-            box-shadow: 0 0 10px #f5c000;
-            animation: loadLine 1s ease-in-out infinite;
+            content: ''; position: absolute; left: -50px; top: 0; height: 100%; width: 50px;
+            background: #f5c000; box-shadow: 0 0 10px #f5c000; animation: loadLine 1s ease-in-out infinite;
         }
         @keyframes loadLine { 0% { left: -50px; } 100% { left: 100%; } }
 
         /* --- UI COMPONENTS --- */
         .input-g {
-            width: 100%;
-            background: #111111;
-            border: 1px solid #333;
-            color: white;
-            padding: 0.8rem 1rem;
-            border-radius: 0.5rem;
-            outline: none;
-            transition: all 0.3s;
+            width: 100%; background: #111111; border: 1px solid #333; color: white;
+            padding: 0.8rem 1rem; border-radius: 0.5rem; outline: none; transition: all 0.3s;
         }
         .input-g:focus { border-color: #f5c000; box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.15); }
         
         .btn-gold {
-            background: linear-gradient(90deg, #f5c000, #d4a000);
-            color: #050505;
-            font-weight: 700;
-            padding: 0.85rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
+            background: linear-gradient(90deg, #f5c000, #d4a000); color: #050505; font-weight: 700;
+            padding: 0.85rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; border: none; cursor: pointer;
             box-shadow: 0 4px 15px rgba(245, 192, 0, 0.2);
         }
         .btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 192, 0, 0.4); }
         .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
 
-        /* Profile Completeness Ring */
-        .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
-        .circle-bg { fill: none; stroke: #333; stroke-width: 3.8; }
-        .circle { fill: none; stroke-width: 3.8; stroke-linecap: round; animation: progress 1s ease-out forwards; }
-        @keyframes progress { 0% { stroke-dasharray: 0 100; } }
+        /* Dashboard Logo Animation Containers */
+        #header-logo-container { position: relative; overflow: hidden; width: 250px; height: 40px; display: flex; align-items: center; }
+        #logo-bizlink { position: absolute; left: 0; transition: opacity 0.3s, transform 0.3s; cursor: pointer; }
+        #logo-golden { position: absolute; left: 0; opacity: 0; transform: translateX(100%); white-space: nowrap; }
+
     </style>
 </head>
 <body>
 
-    <!-- 1. FAILSAFE SPLASH SCREEN -->
+    <!-- 1. SPLASH SCREEN (ABSOLUTE 2.5s TIMEOUT) -->
     <div id="splash">
-        <div class="bizlink-logo">Bizlink</div>
+        <div class="bizlink-logo-splash">Bizlink</div>
         <div class="golden-container">GOLDEN'S</div>
         <div class="spinner-line"></div>
     </div>
@@ -185,8 +161,7 @@
                     </div>
                 </label>
             </div>
-            
-            <button onclick="handleRoleSelection()" class="btn-gold w-full mt-6 flex justify-center items-center text-sm">
+            <button onclick="routeFromRBAC()" class="btn-gold w-full mt-6 flex justify-center items-center text-sm">
                 Continue <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
@@ -196,15 +171,13 @@
     <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-5xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.9)] overflow-hidden border border-gray-800">
             
-            <!-- Left Side: Branding -->
+            <!-- Left Side Branding -->
             <div class="p-8 lg:p-12 bg-[#050505] flex flex-col justify-between relative overflow-hidden hidden md:flex">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
-                
                 <div class="relative z-10">
                     <h1 class="text-5xl font-extrabold text-bizblue mb-1 animate-pulse-glow tracking-tight">Bizlink</h1>
                     <p class="text-gold font-semibold tracking-widest text-xs uppercase opacity-90">Golden's Business</p>
                 </div>
-                
                 <div class="relative z-10 my-12">
                     <h2 class="text-3xl font-bold text-white mb-6 leading-tight">B2B Networking,<br>Evolved.</h2>
                     <ul class="space-y-5 text-sm text-gray-300">
@@ -212,14 +185,9 @@
                         <li class="flex items-center"><div class="w-8 h-8 rounded-full bg-dark-800 border border-gray-800 flex items-center justify-center mr-4"><i class="fa-solid fa-play text-bizblue text-sm"></i></div> Global Vertical Reel-Stream</li>
                     </ul>
                 </div>
-                
-                <div class="relative z-10 text-xs text-gray-600 flex space-x-4">
-                    <a href="terms.html" class="hover:text-gold transition">Terms</a>
-                    <a href="policy.html" class="hover:text-gold transition">Privacy</a>
-                </div>
             </div>
 
-            <!-- Right Side: Forms -->
+            <!-- Right Side Forms -->
             <div class="p-6 lg:p-10 relative bg-[#0a0a0a]">
                 
                 <div class="flex space-x-8 mb-8 border-b border-gray-800 pb-0 relative">
@@ -233,7 +201,6 @@
                     </button>
                 </div>
 
-                <!-- Toast -->
                 <div id="toast-msg" class="hidden transform transition-all duration-300 -translate-y-2 opacity-0 p-3 rounded mb-4 text-sm font-medium border flex items-center">
                     <i id="toast-icon" class="mr-2"></i> <span id="toast-text"></span>
                 </div>
@@ -262,13 +229,8 @@
                         </div>
                         <div class="relative">
                             <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
-                            <i class="fa-regular fa-eye absolute right-4 top-3.5 text-gray-500 cursor-pointer hover:text-gold transition" onclick="togglePassword('login-password')"></i>
+                            <i class="fa-regular fa-eye absolute right-4 top-3.5 text-gray-500 cursor-pointer hover:text-gold" onclick="togglePassword('login-password')"></i>
                         </div>
-                    </div>
-                    
-                    <div class="flex items-center mt-2">
-                        <input type="checkbox" id="remember-me" class="w-4 h-4 bg-dark-900 border-gray-700 rounded text-gold focus:ring-gold accent-gold" checked>
-                        <label for="remember-me" class="ml-2 text-xs text-gray-400 cursor-pointer">Remember my device</label>
                     </div>
                     
                     <button type="submit" id="btn-login" class="btn-gold w-full mt-6 flex justify-center items-center">
@@ -278,7 +240,6 @@
 
                 <!-- Sign Up Form -->
                 <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto pr-3 custom-scrollbar">
-                    
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
                         <input type="text" id="reg-company" class="input-g" required placeholder="Golden's TechS">
@@ -296,6 +257,30 @@
                                 <option value="USA">United States</option>
                                 <option value="IND">India</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- Functional Image Previews -->
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <div class="relative">
+                            <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
+                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
+                                <div id="icon-ceo">
+                                    <i class="fa-solid fa-user-tie text-xl text-gray-500 mb-1"></i>
+                                    <div class="text-[10px] text-gray-400">CEO Photo</div>
+                                </div>
+                                <img id="preview-ceo" class="absolute inset-0 w-full h-full object-cover hidden" alt="CEO">
+                            </label>
+                        </div>
+                        <div class="relative">
+                            <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
+                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
+                                <div id="icon-logo">
+                                    <i class="fa-solid fa-building text-xl text-gray-500 mb-1"></i>
+                                    <div class="text-[10px] text-gray-400">Company Logo</div>
+                                </div>
+                                <img id="preview-logo" class="absolute inset-0 w-full h-full object-cover bg-white hidden" alt="Logo">
+                            </label>
                         </div>
                     </div>
 
@@ -320,21 +305,7 @@
                         </div>
                     </div>
 
-                    <!-- GDPR & Terms -->
-                    <div class="pt-2 pb-2 space-y-2">
-                        <label class="flex items-start cursor-pointer">
-                            <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
-                            <span class="text-[11px] text-gray-400 leading-tight">I agree to the <a href="#" class="text-bizblue hover:underline">Terms of Service</a> & <a href="#" class="text-bizblue hover:underline">Privacy Policy</a>.</span>
-                        </label>
-                        <label class="flex items-start cursor-pointer">
-                            <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
-                            <span class="text-[11px] text-gray-400 leading-tight">I consent to data processing (GDPR Compliance).</span>
-                        </label>
-                    </div>
-
-                    <button type="submit" id="btn-signup" class="btn-gold w-full">
-                        Create Company Account
-                    </button>
+                    <button type="submit" id="btn-signup" class="btn-gold w-full mt-4">Create Company Account</button>
                 </form>
 
                 <!-- Forgot Password -->
@@ -358,22 +329,19 @@
     <!-- 4. POST-LOGIN DASHBOARD (home.html simulation) -->
     <div id="dashboard-container" class="hidden-app h-screen flex flex-col bg-[#050505]">
         
-        <!-- Top App Bar -->
-        <header class="bg-dark-800 border-b border-gray-800 p-3 px-4 flex justify-between items-center z-20 sticky top-0">
-            <div class="text-xl font-extrabold text-bizblue tracking-tight animate-pulse-glow" onclick="location.reload()">Bizlink</div>
+        <!-- Top App Bar with Animation Logic -->
+        <header class="bg-dark-800 border-b border-gray-800 p-3 px-4 flex justify-between items-center z-20 sticky top-0 shadow-md">
+            <!-- Animated Logo Container -->
+            <div id="header-logo-container" onclick="playLogoAnimation()">
+                <div id="logo-bizlink" class="text-2xl font-extrabold text-bizblue tracking-tight animate-pulse-glow">Bizlink</div>
+                <div id="logo-golden" class="text-xl font-bold text-gold tracking-widest uppercase">Golden's Bizlink</div>
+            </div>
             
             <div class="flex items-center space-x-5">
-                <select id="app-theme" class="bg-transparent text-gray-400 text-xs outline-none cursor-pointer hover:text-white" onchange="changeTheme(this.value)">
-                    <option value="dark">Dark</option>
-                    <option value="premium">Golden Premium</option>
-                    <option value="light">Light</option>
-                </select>
-
                 <button class="text-gray-400 hover:text-white relative transition">
                     <i class="fa-solid fa-bell text-lg"></i>
                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-dark-800"></span>
                 </button>
-                
                 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gold to-yellow-200 flex items-center justify-center text-black font-bold cursor-pointer" onclick="logout()">
                     <i class="fa-solid fa-user-tie text-sm"></i>
                 </div>
@@ -384,33 +352,17 @@
         <main class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
             <div class="max-w-4xl mx-auto space-y-6 pb-24">
                 
-                <!-- Profile Completeness Widget (Feature #124) -->
-                <div class="bg-dark-800 rounded-xl p-5 border border-gray-800 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-white font-bold text-lg flex items-center"><i class="fa-solid fa-shield-halved text-gold mr-2"></i> Profile Setup</h3>
-                        <p class="text-xs text-gray-400 mt-1">Complete your profile to unlock full platform features.</p>
-                        <button class="mt-3 text-xs bg-dark-700 hover:bg-dark-900 border border-gray-600 text-white px-3 py-1.5 rounded transition">Complete Now</button>
-                    </div>
-                    <div class="w-20 h-20 relative">
-                        <svg viewBox="0 0 36 36" class="circular-chart gold">
-                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path class="circle" stroke="#f5c000" stroke-dasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">65%</div>
-                    </div>
+                <!-- Search Bar -->
+                <div class="relative group">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500 group-focus-within:text-gold transition"></i>
+                    <input type="text" class="w-full bg-[#111] border border-gray-800 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none shadow-sm transition" placeholder="Search products, companies, reels...">
                 </div>
 
-                <!-- Feed Area -->
-                <div class="bg-dark-800 rounded-xl p-5 border border-gray-800">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-fire text-orange-500 mr-2"></i> Trending Network</h3>
-                        <span class="text-xs text-bizblue cursor-pointer hover:underline">View Feed</span>
-                    </div>
-                    <div class="text-center p-8 border border-dashed border-gray-700 rounded-xl bg-dark-900">
-                        <i class="fa-solid fa-circle-check text-green-500 text-3xl mb-3"></i>
-                        <h3 class="text-white font-bold mb-1">Authentication Secure</h3>
-                        <p class="text-xs text-gray-400">This hub perfectly maintains the Supabase session. Your app is ready for the remaining modules.</p>
-                    </div>
+                <div class="text-center p-8 border border-dashed border-gray-700 rounded-xl bg-dark-900">
+                    <i class="fa-solid fa-circle-check text-green-500 text-4xl mb-3 shadow-[0_0_15px_rgba(34,197,94,0.4)] rounded-full"></i>
+                    <h3 class="text-white font-bold text-lg mb-1">System Online</h3>
+                    <p class="text-xs text-gray-400">Authentication successful. The app is ready to load the dynamic modules (Reels, Profile, Network).</p>
+                    <button class="mt-4 text-xs bg-dark-700 hover:bg-dark-800 border border-gray-600 text-white px-4 py-2 rounded transition" onclick="showToast('Loading popup.html connection...', false)">Test Popup Integration</button>
                 </div>
             </div>
         </main>
@@ -442,89 +394,119 @@
         </nav>
     </div>
 
-    <!-- Application Logic & Supabase Initialization -->
+    <!-- Logic -->
     <script>
         // ==========================================
-        // 1. SUPABASE CONNECTION (REPLACE KEYS HERE)
+        // 1. SUPABASE CONNECTION (USER CONFIG)
         // ==========================================
-        const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bUq7AQAueXJOxlaT96Zr3F-0KsyOLplNEZh_sOLk';
+        const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co'; // <--- PASTE YOUR URL HERE
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bUq7AQAueXJOxlaT96Zr3F-0KsyOLplNEZh_sOLk';                      // <--- PASTE YOUR KEY HERE
         
         let supabase = null;
+        let isMockMode = false;
 
+        // Try to initialize safely
         try {
-            if(!SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-                    auth: { persistSession: true, autoRefreshToken: true }
-                });
-            } else {
-                console.warn("MOCK MODE: Supabase keys not set.");
-            }
-        } catch(e) { console.error("Supabase Init Error:", e); }
-
-        // ==========================================
-        // 2. FAILSAFE BOOTSTRAP (NEVER-ENDING SPLASH FIX)
-        // ==========================================
-        let splashRemoved = false;
-
-        function removeSplash(showDashboardView = false) {
-            if (splashRemoved) return;
-            splashRemoved = true;
+            // Check if the user has actually replaced the placeholder
+            new URL(SUPABASE_URL); 
+            if(SUPABASE_URL.includes('YOUR_PROJECT_ID')) throw new Error("Placeholder detected");
             
-            const splash = document.getElementById('splash');
-            splash.style.opacity = '0';
-            
-            setTimeout(() => {
-                splash.classList.add('hidden-app');
-                if (showDashboardView) {
-                    showDashboard();
-                } else {
-                    document.getElementById('rbac-modal').classList.remove('hidden-app');
-                }
-            }, 500); // Wait for CSS opacity transition
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                auth: { persistSession: true, autoRefreshToken: true }
+            });
+        } catch(e) {
+            console.log("Running in Mock Mode. Please add real Supabase keys to connect.");
+            isMockMode = true;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Failsafe: Absolutely guarantee the splash closes after 2.5 seconds regardless of network/errors.
-            setTimeout(() => {
-                if(!splashRemoved) removeSplash(localStorage.getItem('bizlink_auth') === 'true');
-            }, 2500);
+        // ==========================================
+        // 2. THE 100% BULLETPROOF SPLASH SCREEN
+        // ==========================================
+        let sessionActive = false;
 
-            // Attempt legitimate session check
-            if (supabase) {
-                supabase.auth.getSession().then(({ data }) => {
-                    if (data.session) {
-                        localStorage.setItem('bizlink_auth', 'true');
-                        setTimeout(() => removeSplash(true), 800); // 800ms min display time
-                    } else {
-                        setTimeout(() => removeSplash(false), 800);
-                    }
-                }).catch(() => {
-                    // On error, default to login screen
-                    setTimeout(() => removeSplash(false), 800);
-                });
-            } else {
-                // Mock Mode check
-                if (localStorage.getItem('bizlink_auth') === 'true') {
-                    setTimeout(() => removeSplash(true), 800);
-                } else {
-                    setTimeout(() => removeSplash(false), 800);
-                }
-            }
+        window.addEventListener('load', () => {
+            // 1. Fire the database check in the background
+            checkAuthInBackground();
+
+            // 2. HARD TIMER: Removes splash screen after exactly 2.5s NO MATTER WHAT.
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.classList.add('hidden-app');
+                    // Route user based on whatever state we found
+                    routeUserInitial();
+                }, 500);
+            }, 2500);
         });
 
+        async function checkAuthInBackground() {
+            if (isMockMode) {
+                sessionActive = localStorage.getItem('mock_session') === 'true';
+                return;
+            }
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (data?.session) sessionActive = true;
+            } catch (err) {
+                console.error("Auth check failed:", err);
+            }
+        }
+
+        function routeUserInitial() {
+            if (sessionActive) showDashboard();
+            else document.getElementById('rbac-modal').classList.remove('hidden-app');
+        }
+
         // ==========================================
-        // 3. UI INTERACTIONS 
+        // 3. LOGO ANIMATION (Requested Feature)
         // ==========================================
-        function handleRoleSelection() {
+        let isAnimating = false;
+        function playLogoAnimation() {
+            if(isAnimating) return;
+            isAnimating = true;
+
+            const bizlink = document.getElementById('logo-bizlink');
+            const golden = document.getElementById('logo-golden');
+
+            // 1. Bizlink disappears
+            bizlink.style.opacity = '0';
+            bizlink.style.transform = 'scale(0.8)';
+
+            // 2. Golden slides from right
+            setTimeout(() => {
+                golden.style.animation = 'none'; // reset
+                void golden.offsetWidth; // trigger reflow
+                golden.style.animation = 'slideInRight 0.5s ease-out forwards';
+                
+                // 3. Wait 2 seconds, then slide Golden left and disappear
+                setTimeout(() => {
+                    golden.style.animation = 'none';
+                    void golden.offsetWidth;
+                    golden.style.animation = 'slideOutLeft 0.5s ease-in forwards';
+                    
+                    // 4. Bizlink reappears smoothly
+                    setTimeout(() => {
+                        bizlink.style.opacity = '1';
+                        bizlink.style.transform = 'scale(1)';
+                        isAnimating = false;
+                    }, 500);
+
+                }, 2000);
+            }, 300);
+        }
+
+        // ==========================================
+        // 4. UI INTERACTIONS
+        // ==========================================
+        function routeFromRBAC() {
             const role = document.querySelector('input[name="role"]:checked').value;
             localStorage.setItem('bizlink_role', role);
-            
             document.getElementById('rbac-modal').classList.add('hidden-app');
             
             if (role === 'salesman' || role === 'viewer') {
                 showToast("Redirecting to Salesman Portal...", false);
-                setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 1000); 
+                setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 800); 
             } else {
                 document.getElementById('auth-container').classList.remove('hidden-app');
             }
@@ -536,7 +518,6 @@
             
             document.getElementById('toast-text').textContent = message;
             icon.className = isError ? "fa-solid fa-circle-exclamation text-lg" : "fa-solid fa-circle-check text-lg";
-            
             toast.className = isError 
                 ? "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-red-500/10 border-red-500/50 text-red-400"
                 : "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-green-500/10 border-green-500/50 text-green-400";
@@ -590,61 +571,69 @@
             const s1 = document.getElementById('str-1');
             const s2 = document.getElementById('str-2');
             const s3 = document.getElementById('str-3');
-            
             s1.className = 'h-full w-1/3 transition-colors duration-300';
             s2.className = 'h-full w-1/3 transition-colors duration-300';
             s3.className = 'h-full w-1/3 transition-colors duration-300';
-
             if (password.length > 0) s1.classList.add('bg-red-500');
             if (password.length >= 8 && password.match(/[A-Za-z]/)) s2.classList.add('bg-yellow-500');
             if (password.length >= 8 && password.match(/[A-Z]/) && password.match(/[0-9]/)) s3.classList.add('bg-green-500');
         }
 
-        function changeTheme(theme) {
-            document.body.className = '';
-            if (theme === 'light') document.body.classList.add('theme-light');
-            if (theme === 'premium') document.body.classList.add('theme-premium');
-            if (theme === 'dark') document.body.classList.add('dark');
-            showToast("Theme changed to " + theme, false);
+        function previewImage(input, previewId, iconId) {
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(previewId);
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById(iconId).style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         // ==========================================
-        // 4. AUTHENTICATION HANDLERS
+        // 5. AUTHENTICATION HANDLERS (With Failsafes)
         // ==========================================
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
             const btn = document.getElementById('btn-login');
-
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
 
-            if (!supabase) {
-                setTimeout(() => {
-                    localStorage.setItem('bizlink_auth', 'true');
+            try {
+                if (isMockMode) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    localStorage.setItem('mock_session', 'true');
                     showDashboard();
-                    btn.disabled = false;
-                    btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
-                }, 1000);
-                return;
-            }
+                    return;
+                }
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
-            if (error) {
-                showToast(error.message);
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: document.getElementById('login-email').value,
+                    password: document.getElementById('login-password').value
+                });
+
+                if (error) throw error;
+                showDashboard();
+
+            } catch(error) {
+                showToast(error.message || "Login failed");
+            } finally {
+                // Failsafe: ALWAYS reset the button state
                 btn.disabled = false;
                 btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
-            } else {
-                localStorage.setItem('bizlink_auth', 'true');
-                showDashboard();
             }
         }
 
         async function handleGoogleLogin() {
-            if (!supabase) return showToast("Mock Mode: Requires valid Supabase keys.", false);
-            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-            if (error) showToast(error.message);
+            if (isMockMode) return showToast("Google Login requires real Supabase keys", false);
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                if (error) throw error;
+            } catch(err) {
+                showToast(err.message);
+            }
         }
 
         async function handleSignup(e) {
@@ -658,53 +647,75 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating...';
 
-            if (!supabase) {
-                setTimeout(() => {
+            try {
+                if (isMockMode) {
+                    await new Promise(r => setTimeout(r, 1500));
                     showToast("Mock Account Created! Please sign in.", false);
                     switchTab('signin');
-                    btn.disabled = false;
-                    btn.innerHTML = 'Create Company Account';
-                }, 1500);
-                return;
-            }
+                    return;
+                }
 
-            const { data, error } = await supabase.auth.signUp({
-                email: document.getElementById('reg-email').value,
-                password: pass,
-                options: { data: { full_name: document.getElementById('reg-ceo').value } }
-            });
+                const { data, error } = await supabase.auth.signUp({
+                    email: document.getElementById('reg-email').value,
+                    password: pass,
+                    options: { data: { full_name: document.getElementById('reg-ceo').value } }
+                });
 
-            if (error) {
-                showToast(error.message);
-            } else {
-                showToast("Account created successfully! Check email to verify.", false);
+                if (error) throw error;
+
+                // Create company profile
+                const { error: dbError } = await supabase.from('companies').insert([{
+                    owner_id: data.user.id,
+                    company_name: document.getElementById('reg-company').value,
+                    ceo_name: document.getElementById('reg-ceo').value,
+                    country: document.getElementById('reg-country').value,
+                    email: document.getElementById('reg-email').value
+                }]);
+
+                if(dbError) console.error("Profile insert failed:", dbError);
+                
+                showToast("Account created successfully! Please sign in.", false);
                 switchTab('signin');
+
+            } catch (error) {
+                showToast(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Create Company Account';
             }
-            btn.disabled = false;
-            btn.innerHTML = 'Create Company Account';
         }
 
         async function handleOTP(e) {
             e.preventDefault();
-            const email = document.getElementById('otp-email').value;
-            if(!supabase) return showToast("Mock Mode: Link sent!", false);
-            
-            const { error } = await supabase.auth.resetPasswordForEmail(email);
-            if (error) showToast(error.message);
-            else showToast("Recovery email sent.", false);
+            const btn = document.getElementById('btn-otp');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+
+            try {
+                if(isMockMode) throw new Error("Link sent (Mock)");
+                const { error } = await supabase.auth.resetPasswordForEmail(document.getElementById('otp-email').value);
+                if (error) throw error;
+                showToast("Recovery email sent.", false);
+            } catch(err) {
+                showToast(err.message, err.message.includes('Mock') ? false : true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Reset Link';
+            }
         }
 
+        // ==========================================
+        // 6. VIEW NAVIGATION
+        // ==========================================
         function showDashboard() {
             document.getElementById('rbac-modal').classList.add('hidden-app');
             document.getElementById('auth-container').classList.add('hidden-app');
-            
-            const dashboard = document.getElementById('dashboard-container');
-            dashboard.classList.remove('hidden-app');
+            document.getElementById('dashboard-container').classList.remove('hidden-app');
         }
 
         async function logout() {
-            if(supabase) await supabase.auth.signOut();
-            localStorage.removeItem('bizlink_auth');
+            if(!isMockMode) await supabase.auth.signOut();
+            localStorage.removeItem('mock_session');
             
             document.getElementById('dashboard-container').classList.add('hidden-app');
             document.getElementById('rbac-modal').classList.remove('hidden-app');
