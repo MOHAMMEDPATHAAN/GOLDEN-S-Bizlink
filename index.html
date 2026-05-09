@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#f5c000">
-    <meta name="description" content="Bizlink - Golden's Business B2B Networking Hub">
     <title>Bizlink – Golden's Business</title>
     
     <!-- Fonts & Icons -->
@@ -42,19 +41,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #050505;
             color: #ffffff;
             overflow-x: hidden;
+            /* Premium textured background */
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%), 
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#f5c000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
         .hidden-app { display: none !important; }
-        .visible-app { display: block !important; }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- SPLASH ANIMATION --- */
         #splash {
             position: fixed;
             inset: 0;
@@ -64,19 +64,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
-        }
-
-        #splash.hidden-app {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .splash-content {
-            text-align: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
         }
 
         .bizlink-logo {
@@ -84,28 +72,40 @@
             font-weight: 800;
             color: #0066ff;
             margin-bottom: 1rem;
-            animation: slideDown 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            text-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .golden-text {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #f5c000;
-            text-shadow: 0 0 15px rgba(245, 192, 0, 0.6);
-            margin-bottom: 1.5rem;
-            animation: fadeInUp 1s ease-out 0.3s forwards;
             opacity: 0;
+            transform: scale(0.9);
+            animation: popInBlue 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.2s, pulseGlow 2s infinite alternate 1.2s;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .golden-container {
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .text-golden { color: #f5c000; text-shadow: 0 0 15px rgba(245, 192, 0, 0.6); }
+        .text-tech { color: #888; display: inline-block; white-space: nowrap; }
+        .text-s { color: #f5c000; }
+
+        @keyframes popInBlue {
+            to { opacity: 1; transform: scale(1); text-shadow: 0 0 20px rgba(0, 102, 255, 0.6); }
+        }
+        
+        .animate-splash .text-tech { animation: fadeTech 2.5s ease-in-out forwards; }
+        .animate-splash .text-s { animation: moveS 2.5s ease-in-out forwards; }
+
+        @keyframes fadeTech {
+            0% { opacity: 1; max-width: 100px; }
+            40%, 60% { opacity: 0; max-width: 0; padding: 0; margin: 0; }
+            100% { opacity: 1; max-width: 100px; }
+        }
+        @keyframes moveS {
+            0% { transform: translateX(0); }
+            40%, 60% { transform: translateX(-60px); } /* Adjust based on 'tech' width */
+            100% { transform: translateX(0); }
         }
 
         .spinner {
@@ -115,13 +115,26 @@
             border-top-color: #f5c000;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-top: 3rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- PREMIUM LOCK UI --- */
+        .premium-lock {
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: inherit;
+            transition: opacity 0.3s;
         }
 
-        @keyframes spin { 
-            to { transform: rotate(360deg); } 
-        }
-
-        /* --- MAIN UI --- */
+        /* Standard Input Styling */
         .input-g {
             width: 100%;
             background: #111111;
@@ -131,15 +144,9 @@
             border-radius: 0.5rem;
             outline: none;
             transition: all 0.3s;
-            font-family: 'Poppins', sans-serif;
         }
-
-        .input-g:focus { 
-            border-color: #f5c000; 
-            box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.15); 
-            background: #1a1a1a; 
-        }
-
+        .input-g:focus { border-color: #f5c000; box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.15); background: #1a1a1a; }
+        
         .btn-gold {
             background: linear-gradient(90deg, #f5c000, #d4a000);
             color: #050505;
@@ -149,785 +156,661 @@
             transition: transform 0.2s, box-shadow 0.2s;
             border: none;
             cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
         }
+        .btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(245, 192, 0, 0.3); }
+        .btn-gold:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        .btn-gold:hover:not(:disabled) { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(245, 192, 0, 0.3); 
-        }
-
-        .btn-gold:disabled { 
-            opacity: 0.6; 
-            cursor: not-allowed; 
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-            z-index: 9998;
-            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 4.7s forwards;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
-        }
-
-        .toast.success { background: #10b981; color: white; }
-        .toast.error { background: #ef4444; color: white; }
-        .toast.info { background: #3b82f6; color: white; }
-
+        /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
 
-        /* Bottom Bar */
-        nav.bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: #111111;
-            border-top: 1px solid #333;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        nav.bottom-bar button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            transition: color 0.3s;
-            font-size: 0.75rem;
-            gap: 4px;
-            padding: 8px 12px;
-        }
-
-        nav.bottom-bar button i {
-            font-size: 1.5rem;
-        }
-
-        nav.bottom-bar button.active,
-        nav.bottom-bar button:hover {
-            color: #f5c000;
-        }
-
-        nav.bottom-bar button.center-btn {
-            position: relative;
-            margin-top: -30px;
-        }
-
-        nav.bottom-bar button.center-btn div {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #0066ff, #4d94ff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.4);
-        }
-
-        nav.bottom-bar button.center-btn i {
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        main {
-            padding-bottom: 80px;
+        /* File Upload Previews */
+        .img-preview {
+            width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- SPLASH SCREEN -->
-    <div id="splash">
-        <div class="splash-content">
-            <div class="bizlink-logo">Bizlink</div>
-            <div class="golden-text">GOLDEN'S BUSINESS</div>
-            <div class="spinner"></div>
+    <!-- 1. SPLASH SCREEN -->
+    <div id="splash" class="animate-splash">
+        <div class="bizlink-logo">Bizlink</div>
+        <div class="golden-container">
+            <span class="text-golden">GOLDEN'S</span>
         </div>
+        <div class="spinner"></div>
     </div>
 
-    <!-- RBAC MODAL -->
+    <!-- 2. RBAC GATEWAY -->
     <div id="rbac-modal" class="hidden-app fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden transform transition-all scale-100">
             <div class="absolute -top-20 -right-20 w-48 h-48 bg-gold/10 rounded-full blur-3xl"></div>
             
-            <h2 class="text-3xl font-bold text-white mb-2 text-center">Welcome to <span class="text-bizblue">Bizlink</span></h2>
-            <p class="text-gray-400 text-sm mb-8 text-center">Select your role to get started</p>
+            <h2 class="text-3xl font-bold text-white mb-2 text-center tracking-tight">Join <span class="text-bizblue animate-pulse-glow">Bizlink</span></h2>
+            <p class="text-gray-400 text-sm mb-8 text-center">Select your role to configure your experience</p>
             
-            <div class="space-y-4 relative z-10">
+            <div class="space-y-4">
                 <label class="block cursor-pointer group">
                     <input type="radio" name="role" value="owner" class="peer sr-only" checked>
-                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
-                        <div class="font-semibold text-white"><i class="fa-solid fa-building text-gold mr-2"></i> Company Owner</div>
-                        <div class="text-xs text-gray-400 mt-1 ml-6">Full admin access</div>
-                    </div>
-                </label>
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="manager" class="peer sr-only">
-                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
-                        <div class="font-semibold text-white"><i class="fa-solid fa-user-tie text-gold mr-2"></i> Company Manager</div>
-                        <div class="text-xs text-gray-400 mt-1 ml-6">Manage products & sales</div>
+                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
+                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-building text-gold mr-3"></i> Company Owner</div>
+                        <div class="text-xs text-gray-400 mt-1 pl-8">Register business, list products, full admin access.</div>
                     </div>
                 </label>
                 <label class="block cursor-pointer group">
                     <input type="radio" name="role" value="salesman" class="peer sr-only">
-                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
-                        <div class="font-semibold text-white"><i class="fa-solid fa-briefcase text-bizblue mr-2"></i> Salesman/Agent</div>
-                        <div class="text-xs text-gray-400 mt-1 ml-6">Browse & network</div>
-                    </div>
-                </label>
-                <label class="block cursor-pointer group">
-                    <input type="radio" name="role" value="visitor" class="peer sr-only">
-                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
-                        <div class="font-semibold text-white"><i class="fa-solid fa-eye text-bizblue mr-2"></i> Visitor</div>
-                        <div class="text-xs text-gray-400 mt-1 ml-6">Browse only</div>
+                    <div class="p-5 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
+                        <div class="font-semibold text-white text-lg"><i class="fa-solid fa-briefcase text-bizblue mr-3"></i> Salesman / Agent</div>
+                        <div class="text-xs text-gray-400 mt-1 pl-8">Network, view catalogs, close deals securely.</div>
                     </div>
                 </label>
             </div>
             
-            <button onclick="app.handleRoleSelection()" class="btn-gold w-full mt-8 flex justify-center items-center gap-2">
-                Continue <i class="fa-solid fa-arrow-right"></i>
+            <button onclick="handleRoleSelection()" class="btn-gold w-full mt-8 flex justify-center items-center text-lg">
+                Continue <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
     </div>
 
-    <!-- AUTH CONTAINER -->
+    <!-- 3. MAIN AUTHENTICATION PANEL -->
     <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-4xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden border border-gray-800">
             
-            <!-- Left: Branding -->
-            <div class="p-8 bg-gradient-to-br from-[#0a0a0a] to-[#111111] flex flex-col justify-between hidden md:flex relative">
+            <!-- Left Side: Branding -->
+            <div class="p-8 lg:p-12 bg-gradient-to-br from-[#0a0a0a] to-[#111111] flex flex-col justify-between relative overflow-hidden">
+                <!-- Background decor -->
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-bizblue/10 rounded-full blur-3xl"></div>
                 
-                <div>
-                    <h1 class="text-4xl font-bold text-bizblue mb-1">Bizlink</h1>
-                    <p class="text-gold text-xs font-medium tracking-widest uppercase">Golden's Business</p>
+                <div class="relative z-10">
+                    <h1 class="text-4xl font-bold text-bizblue mb-1 animate-pulse-glow">Bizlink</h1>
+                    <p class="text-gold font-medium tracking-widest text-xs uppercase opacity-90">Golden's Business</p>
                 </div>
                 
-                <div>
-                    <h2 class="text-2xl font-bold text-white mb-4">The Ultimate B2B Networking Hub</h2>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li><i class="fa-solid fa-box text-gold mr-2"></i> Unlimited Product Listings</li>
-                        <li><i class="fa-solid fa-globe text-bizblue mr-2"></i> Global Marketplace</li>
-                        <li><i class="fa-solid fa-handshake text-gold mr-2"></i> Secure Transactions</li>
-                        <li><i class="fa-solid fa-shield text-bizblue mr-2"></i> Protected Data</li>
+                <div class="relative z-10 my-12">
+                    <h2 class="text-2xl font-bold text-white mb-6 leading-tight">The Ultimate B2B<br>Networking Hub.</h2>
+                    <ul class="space-y-4 text-sm text-gray-400">
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-box text-gold text-xs"></i></div> Unlimited Products</li>
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-play text-bizblue text-xs"></i></div> Global Reel-Stream</li>
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-video text-gold text-xs"></i></div> Live Video Deals</li>
+                        <li class="flex items-center premium-feature-item"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-robot text-bizblue text-xs"></i></div> AI Chat Assistant</li>
                     </ul>
                 </div>
                 
-                <div class="flex gap-4 text-gray-500 text-xs">
-                    <a href="#" class="hover:text-gold">Terms</a>
-                    <a href="#" class="hover:text-gold">Privacy</a>
+                <div class="relative z-10 flex space-x-4 text-gray-600 text-sm">
+                    <a href="terms.html" class="hover:text-gold transition">Terms</a>
+                    <a href="policy.html" class="hover:text-gold transition">Privacy</a>
                 </div>
             </div>
 
-            <!-- Right: Forms -->
-            <div class="p-8 bg-[#111111] relative">
+            <!-- Right Side: Forms -->
+            <div class="p-8 lg:p-12 relative bg-[#111111]">
                 
-                <!-- Tabs -->
-                <div class="flex gap-8 mb-8 border-b border-gray-800 pb-4">
-                    <button onclick="app.switchTab('signin')" id="tab-signin" class="text-gold font-semibold relative">
+                <!-- Tab Nav -->
+                <div class="flex space-x-8 mb-8 border-b border-gray-800 pb-0 relative">
+                    <button onclick="switchTab('signin')" id="tab-signin" class="text-gold font-semibold pb-3 px-1 relative">
                         Sign In
-                        <div class="absolute -bottom-4 left-0 w-full h-0.5 bg-gold rounded-t"></div>
+                        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t"></div>
                     </button>
-                    <button onclick="app.switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-semibold relative">
-                        Register
-                        <div class="absolute -bottom-4 left-0 w-full h-0.5 bg-transparent rounded-t"></div>
+                    <button onclick="switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition">
+                        Register Company
+                        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>
                     </button>
                 </div>
 
                 <!-- Toast -->
-                <div id="toast" class="hidden"></div>
+                <div id="toast-msg" class="hidden transform transition-all duration-300 -translate-y-2 opacity-0 p-3 rounded mb-4 text-sm font-medium border"></div>
 
-                <!-- SIGN IN FORM -->
-                <form id="form-signin" onsubmit="app.handleLogin(event)" class="space-y-4">
+                <!-- Sign In Form -->
+                <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-5">
+                    <button type="button" onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 font-semibold p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 transition shadow-sm">
+                        <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        Continue with Google
+                    </button>
+                    
+                    <div class="flex items-center my-2 opacity-60">
+                        <div class="flex-1 border-t border-gray-700"></div>
+                        <div class="px-3 text-[10px] uppercase tracking-wider text-gray-400">Or Email</div>
+                        <div class="flex-1 border-t border-gray-700"></div>
+                    </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
-                        <input type="email" id="login-email" class="input-g" required placeholder="you@company.com">
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Email Address</label>
+                        <input type="email" id="login-email" class="input-g" required placeholder="name@company.com">
                     </div>
                     <div>
-                        <div class="flex justify-between items-center mb-1.5">
+                        <div class="flex justify-between items-end mb-1.5">
                             <label class="block text-xs font-medium text-gray-400">Password</label>
-                            <button type="button" onclick="app.showForgotPassword()" class="text-[11px] text-gold hover:underline">Forgot?</button>
+                            <a href="#" onclick="showForgotPassword()" class="text-[11px] text-gold hover:underline">Forgot password?</a>
                         </div>
                         <div class="relative">
                             <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
-                            <i class="fa-regular fa-eye absolute right-3 top-3 text-gray-500 cursor-pointer hover:text-gold" onclick="app.togglePassword('login-password')"></i>
+                            <i class="fa-regular fa-eye absolute right-4 top-3.5 text-gray-500 cursor-pointer hover:text-gold transition" onclick="togglePassword('login-password')"></i>
                         </div>
                     </div>
-                    <button type="submit" id="btn-login" class="btn-gold w-full mt-6 flex justify-center items-center gap-2">
-                        Sign In <i class="fa-solid fa-arrow-right"></i>
+                    
+                    <button type="submit" id="btn-login" class="btn-gold w-full mt-4 flex justify-center items-center">
+                        Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>
                     </button>
-                    <div class="text-xs text-center text-gray-500">
-                        New here? <button type="button" onclick="app.switchTab('signup')" class="text-gold hover:underline">Create account</button>
-                    </div>
                 </form>
 
-                <!-- SIGN UP FORM -->
-                <form id="form-signup" onsubmit="app.handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Sign Up Form (Company) -->
+                <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[65vh] overflow-y-auto pr-3 custom-scrollbar">
                     
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="reg-company" class="input-g" required placeholder="Your Company">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="reg-company" class="input-g" required placeholder="Golden's TechS">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">CEO Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="reg-ceo" class="input-g" required placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
+                            <select id="reg-country" class="input-g" required>
+                                <option value="UAE">United Arab Emirates</option>
+                                <option value="USA">United States</option>
+                                <option value="IND">India</option>
+                                <option value="UK">United Kingdom</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">CEO Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="reg-ceo" class="input-g" required placeholder="John Doe">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
-                        <select id="reg-country" class="input-g" required>
-                            <option value="">Select Country</option>
-                            <option value="UAE">United Arab Emirates</option>
-                            <option value="USA">United States</option>
-                            <option value="IND">India</option>
-                            <option value="UK">United Kingdom</option>
-                            <option value="CAN">Canada</option>
-                            <option value="JAP">Japan</option>
-                        </select>
+                    <!-- File Uploads (Functional Preview) -->
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <!-- CEO Image -->
+                        <div class="relative">
+                            <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
+                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-28 flex flex-col justify-center">
+                                <div id="icon-ceo">
+                                    <i class="fa-solid fa-user-tie text-2xl text-gray-500 mb-1"></i>
+                                    <div class="text-[10px] text-gray-400">CEO Photo</div>
+                                </div>
+                                <img id="preview-ceo" class="img-preview absolute inset-0" alt="CEO Preview">
+                            </label>
+                        </div>
+                        <!-- Company Logo -->
+                        <div class="relative">
+                            <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
+                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-28 flex flex-col justify-center">
+                                <div id="icon-logo">
+                                    <i class="fa-solid fa-building text-2xl text-gray-500 mb-1"></i>
+                                    <div class="text-[10px] text-gray-400">Company Logo</div>
+                                </div>
+                                <img id="preview-logo" class="img-preview absolute inset-0 bg-white" alt="Logo Preview">
+                            </label>
+                        </div>
                     </div>
 
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Email <span class="text-red-500">*</span></label>
                         <input type="email" id="reg-email" class="input-g" required placeholder="contact@company.com">
                     </div>
-
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
-                        <input type="password" id="reg-password" class="input-g" required minlength="8" placeholder="Min 8 characters">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-password" class="input-g" required minlength="8" placeholder="••••••••">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Confirm <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-confirm" class="input-g" required placeholder="••••••••">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Confirm Password <span class="text-red-500">*</span></label>
-                        <input type="password" id="reg-confirm" class="input-g" required placeholder="Confirm password">
+                    <!-- Premium Feature Hook -->
+                    <div class="relative p-3 rounded-lg border border-gray-700 bg-dark-900 mt-2">
+                        <div class="flex justify-between items-center z-10 relative">
+                            <div>
+                                <h4 class="text-xs font-semibold text-white"><i class="fa-solid fa-shield-halved text-gold mr-1"></i> Instant Tax ID Validation</h4>
+                                <p class="text-[10px] text-gray-500">Unlocks with Pro Package</p>
+                            </div>
+                            <i class="fa-solid fa-lock text-gray-600 text-sm"></i>
+                        </div>
+                        <div class="premium-lock">
+                            <span class="text-[10px] font-bold text-gold tracking-widest"><i class="fa-solid fa-crown mr-1"></i> UPGRADE TO UNLOCK</span>
+                        </div>
                     </div>
-
-                    <label class="flex items-center gap-2 text-xs">
-                        <input type="checkbox" id="reg-terms" required class="w-4 h-4 cursor-pointer">
-                        <span class="text-gray-400">I agree to <span class="text-gold hover:underline cursor-pointer">Terms & Privacy</span></span>
-                    </label>
 
                     <button type="submit" id="btn-signup" class="btn-gold w-full mt-4">
-                        Create Account
+                        Create Company Account
                     </button>
                 </form>
 
-                <!-- OTP FORM -->
-                <form id="form-otp" onsubmit="app.handleOTP(event)" class="hidden space-y-4">
-                    <h3 class="text-lg font-bold text-white">Reset Password</h3>
-                    <p class="text-xs text-gray-400">Enter your email to receive a reset link</p>
+                <!-- Forgot Password -->
+                <form id="form-forgot" onsubmit="handleOTP(event)" class="hidden space-y-4">
+                    <h3 class="text-xl font-bold text-white mb-1">Reset Password</h3>
+                    <p class="text-xs text-gray-400 mb-6">Enter your email to receive a recovery link.</p>
                     
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1.5">Email</label>
-                        <input type="email" id="otp-email" class="input-g" required placeholder="you@company.com">
+                        <label class="block text-xs text-gray-400 mb-1">Registered Email</label>
+                        <input type="email" id="otp-email" class="input-g" required placeholder="name@company.com">
                     </div>
                     
-                    <button type="submit" class="btn-gold w-full">Send Reset Link</button>
-                    <button type="button" onclick="app.switchTab('signin')" class="w-full text-xs text-gray-500 hover:text-white">Back to Sign In</button>
+                    <button type="submit" id="btn-otp" class="btn-gold w-full mt-4">Send Reset Link</button>
+                    <button type="button" onclick="switchTab('signin')" class="w-full mt-4 text-xs text-gray-500 hover:text-white transition">Back to Sign In</button>
                 </form>
+
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard-container" class="hidden-app min-h-screen bg-dark-900">
-        <!-- Header -->
-        <header class="bg-dark-800 border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-20">
-            <h1 class="text-xl font-bold text-bizblue">Bizlink</h1>
-            <div class="flex items-center gap-4">
+    <!-- 4. POST-LOGIN DASHBOARD (Simulated home.html & bottom bar) -->
+    <div id="dashboard-container" class="hidden-app h-screen flex flex-col bg-dark-900">
+        <!-- Top Bar -->
+        <header class="bg-dark-800 border-b border-gray-800 p-4 flex justify-between items-center z-20 shadow-md">
+            <div class="text-xl font-bold text-bizblue animate-pulse-glow">Bizlink</div>
+            <div class="flex items-center space-x-4">
                 <button class="text-gray-400 hover:text-white relative">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-dark-800"></span>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer text-xs" onclick="app.logout()">
-                    <span id="profile-initial">G</span>
+                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer" onclick="logout()">
+                    C
                 </div>
             </div>
         </header>
+        
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
+            <div class="max-w-2xl mx-auto space-y-6 pb-20">
+                <!-- Search -->
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500"></i>
+                    <input type="text" class="w-full bg-dark-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none" placeholder="Search products, reels, profiles...">
+                </div>
 
-        <!-- Main Content -->
-        <main class="pb-24 px-4">
-            <!-- Home Module (Default) -->
-            <div id="module-home" class="visible-app">
-                <div class="max-w-3xl mx-auto py-6 space-y-6">
-                    <h2 class="text-2xl font-bold text-white mb-4">Welcome to Bizlink</h2>
-                    
-                    <!-- Search -->
-                    <div class="relative">
-                        <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500"></i>
-                        <input type="text" class="w-full bg-dark-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-sm focus:border-gold outline-none" placeholder="Search products...">
-                    </div>
-
-                    <!-- Featured Products -->
-                    <div class="bg-dark-800 rounded-xl p-4 border border-gray-800">
-                        <h3 class="text-lg font-bold text-white mb-4">Featured Products</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
-                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
-                                <div class="text-sm font-medium text-white">Product 1</div>
-                                <div class="text-xs text-gold">$999</div>
-                            </div>
-                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
-                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
-                                <div class="text-sm font-medium text-white">Product 2</div>
-                                <div class="text-xs text-gold">$1,200</div>
-                            </div>
-                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
-                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
-                                <div class="text-sm font-medium text-white">Product 3</div>
-                                <div class="text-xs text-gold">$850</div>
-                            </div>
+                <!-- Feed Content Sim -->
+                <div class="bg-dark-800 rounded-xl p-4 border border-gray-800">
+                    <h3 class="text-lg font-bold text-white mb-4">Recommended Products</h3>
+                    <div class="flex space-x-4 overflow-x-auto custom-scrollbar pb-2">
+                        <div class="min-w-[140px] bg-dark-700 rounded-lg p-2">
+                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
+                            <div class="text-sm text-white font-medium">Gold Watch</div>
+                            <div class="text-xs text-gold">$4,999</div>
+                        </div>
+                        <div class="min-w-[140px] bg-dark-700 rounded-lg p-2">
+                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
+                            <div class="text-sm text-white font-medium">Steel Pipe x100</div>
+                            <div class="text-xs text-gold">$1,200</div>
+                        </div>
+                        <div class="min-w-[140px] bg-dark-700 rounded-lg p-2">
+                            <div class="h-24 bg-gray-800 rounded mb-2"></div>
+                            <div class="text-sm text-white font-medium">Circuit Boards</div>
+                            <div class="text-xs text-gold">$850</div>
                         </div>
                     </div>
-
-                    <div class="text-center text-xs text-gray-500">
-                        <p>More features coming soon...</p>
-                    </div>
                 </div>
-            </div>
 
-            <!-- Reels Module -->
-            <div id="module-reels" class="hidden-app max-w-3xl mx-auto py-6">
-                <h2 class="text-2xl font-bold text-white mb-4">Reels & Videos</h2>
-                <div class="text-center text-gray-400 py-12">
-                    <i class="fa-solid fa-film text-4xl text-gold mb-4 block"></i>
-                    <p>Reels module coming soon...</p>
-                </div>
-            </div>
-
-            <!-- Add Module -->
-            <div id="module-add" class="hidden-app max-w-3xl mx-auto py-6">
-                <h2 class="text-2xl font-bold text-white mb-4">Add Product</h2>
-                <div class="bg-dark-800 rounded-xl p-6 border border-gray-800">
-                    <form class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Product Name</label>
-                            <input type="text" class="input-g" placeholder="Enter product name">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Price</label>
-                            <input type="number" class="input-g" placeholder="0.00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Description</label>
-                            <textarea class="input-g h-24 resize-none" placeholder="Describe your product..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-gold w-full">Add Product</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Products Module -->
-            <div id="module-products" class="hidden-app max-w-3xl mx-auto py-6">
-                <h2 class="text-2xl font-bold text-white mb-4">My Products</h2>
-                <div class="text-center text-gray-400 py-12">
-                    <i class="fa-solid fa-box text-4xl text-gold mb-4 block"></i>
-                    <p>No products yet. Start adding your products!</p>
-                </div>
-            </div>
-
-            <!-- Profile Module -->
-            <div id="module-profile" class="hidden-app max-w-3xl mx-auto py-6">
-                <h2 class="text-2xl font-bold text-white mb-4">Profile</h2>
-                <div class="bg-dark-800 rounded-xl p-6 border border-gray-800 space-y-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-black text-xl font-bold">
-                            <span id="profile-initial-lg">G</span>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white" id="profile-name">Loading...</h3>
-                            <p class="text-xs text-gray-400" id="profile-email">email@company.com</p>
-                        </div>
-                    </div>
-                    <hr class="border-gray-700">
-                    <button onclick="app.logout()" class="w-full py-2 px-4 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition">
-                        <i class="fa-solid fa-sign-out-alt mr-2"></i> Sign Out
-                    </button>
+                <div class="text-center text-xs text-gray-500 mt-10">
+                    <p>Welcome to the main hub. Actual modules (reels.html, network.html) will load here.</p>
                 </div>
             </div>
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-bar">
-            <button onclick="app.switchModule('home')" data-module="home" class="active">
-                <i class="fa-solid fa-house"></i>
-                <span>Home</span>
+        <!-- Fixed Bottom Bar -->
+        <nav class="fixed bottom-0 w-full bg-[#111111] border-t border-gray-800 flex justify-around p-2 z-30 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+            <button class="flex flex-col items-center p-2 text-gold">
+                <i class="fa-solid fa-house text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Home</span>
             </button>
-            <button onclick="app.switchModule('reels')" data-module="reels">
-                <i class="fa-solid fa-play"></i>
-                <span>Reels</span>
+            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+                <i class="fa-solid fa-play text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Reels</span>
             </button>
-            <button onclick="app.switchModule('add')" data-module="add" class="center-btn">
-                <div>
-                    <i class="fa-solid fa-plus"></i>
+            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition -mt-5">
+                <div class="bg-bizblue text-white w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,102,255,0.5)]">
+                    <i class="fa-solid fa-plus text-xl"></i>
                 </div>
-                <span>Add</span>
+                <span class="text-[10px] font-medium mt-1">Add</span>
             </button>
-            <button onclick="app.switchModule('products')" data-module="products">
-                <i class="fa-solid fa-box"></i>
-                <span>Products</span>
+            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+                <i class="fa-solid fa-box-open text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Products</span>
             </button>
-            <button onclick="app.switchModule('profile')" data-module="profile">
-                <i class="fa-solid fa-user"></i>
-                <span>Profile</span>
+            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+                <i class="fa-solid fa-user text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Profile</span>
             </button>
         </nav>
     </div>
 
-    <!-- Main App Script -->
+    <!-- Application Logic & Supabase Integration -->
     <script>
+        // ==========================================
+        // 1. SUPABASE CONFIGURATION (REPLACE THESE)
+        // ==========================================
         const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU6N4MJXvLJ-0LGF6LqLF7fZ6v3eB9J8K_1-xqaY';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bUq7AQAueXJOxlaT96Zr3F-0KsyOLplNEZh_sOLk';
+        
+        let supabase;
+        let isDemoMode = false;
 
-        const app = {
-            supabase: null,
-            user: null,
-            role: null,
-            currentModule: 'home',
-
-            // Initialize app
-            async init() {
-                try {
-                    // Initialize Supabase
-                    this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    
-                    // Check existing session
-                    await this.checkSession();
-                } catch (error) {
-                    console.error('Init error:', error);
-                    this.showToast('Error initializing app', 'error');
-                    setTimeout(() => this.showAuthFlow(), 2000);
-                }
-            },
-
-            // Check if user is already logged in
-            async checkSession() {
-                const { data: { session } } = await this.supabase.auth.getSession();
-                
-                // Small delay to allow splash animation
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                if (session) {
-                    this.user = session.user;
-                    this.role = localStorage.getItem('userRole') || 'owner';
-                    this.hideSplash();
-                    this.showDashboard();
-                    this.loadUserProfile();
-                } else {
-                    this.hideSplash();
-                    // Check if user selected role before
-                    const savedRole = localStorage.getItem('userRole');
-                    if (savedRole) {
-                        this.role = savedRole;
-                        this.showAuthFlow();
-                    } else {
-                        this.showRBAC();
-                    }
-                }
-            },
-
-            // Show/Hide functions
-            hideSplash() {
-                const splash = document.getElementById('splash');
-                if (splash) {
-                    splash.classList.add('hidden-app');
-                }
-            },
-
-            showRBAC() {
-                this.hideAll();
-                document.getElementById('rbac-modal').classList.remove('hidden-app');
-            },
-
-            showAuthFlow() {
-                this.hideAll();
-                document.getElementById('auth-container').classList.remove('hidden-app');
-            },
-
-            showDashboard() {
-                this.hideAll();
-                document.getElementById('dashboard-container').classList.remove('hidden-app');
-            },
-
-            hideAll() {
-                document.getElementById('rbac-modal').classList.add('hidden-app');
-                document.getElementById('auth-container').classList.add('hidden-app');
-                document.getElementById('dashboard-container').classList.add('hidden-app');
-            },
-
-            // RBAC: Handle role selection
-            handleRoleSelection() {
-                const role = document.querySelector('input[name="role"]:checked').value;
-                this.role = role;
-                localStorage.setItem('userRole', role);
-
-                if (role === 'visitor') {
-                    // Visitor mode - can view but no account needed
-                    this.showDashboard();
-                } else {
-                    // Company owner, manager, salesman - need to signin/signup
-                    this.showAuthFlow();
-                }
-            },
-
-            // Auth: Switch between tabs
-            switchTab(tab) {
-                document.getElementById('form-signin').classList.toggle('hidden-app', tab !== 'signin');
-                document.getElementById('form-signup').classList.toggle('hidden-app', tab !== 'signup');
-                document.getElementById('form-otp').classList.toggle('hidden-app', tab !== 'otp');
-
-                document.getElementById('tab-signin').classList.toggle('text-gold', tab === 'signin');
-                document.getElementById('tab-signin').classList.toggle('text-gray-500', tab !== 'signin');
-                document.getElementById('tab-signup').classList.toggle('text-gold', tab === 'signup');
-                document.getElementById('tab-signup').classList.toggle('text-gray-500', tab !== 'signup');
-            },
-
-            // Auth: Login
-            async handleLogin(e) {
-                e.preventDefault();
-                const btn = document.getElementById('btn-login');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Signing In...';
-
-                try {
-                    const email = document.getElementById('login-email').value;
-                    const password = document.getElementById('login-password').value;
-
-                    const { data: { user }, error } = await this.supabase.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (error) throw error;
-
-                    this.user = user;
-                    localStorage.setItem('userRole', this.role);
-                    this.showToast('Signed in successfully!', 'success');
-                    
-                    setTimeout(() => {
-                        this.showDashboard();
-                        this.loadUserProfile();
-                    }, 1000);
-                } catch (error) {
-                    this.showToast(error.message || 'Sign in failed', 'error');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right ml-2"></i>';
-                }
-            },
-
-            // Auth: Register
-            async handleSignup(e) {
-                e.preventDefault();
-                const btn = document.getElementById('btn-signup');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Creating...';
-
-                try {
-                    const email = document.getElementById('reg-email').value;
-                    const password = document.getElementById('reg-password').value;
-                    const confirm = document.getElementById('reg-confirm').value;
-                    const company = document.getElementById('reg-company').value;
-                    const ceo = document.getElementById('reg-ceo').value;
-                    const country = document.getElementById('reg-country').value;
-
-                    if (password !== confirm) {
-                        throw new Error('Passwords do not match');
-                    }
-
-                    // Sign up with Supabase Auth
-                    const { data: { user }, error: signupError } = await this.supabase.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: {
-                                company_name: company,
-                                ceo_name: ceo,
-                                role: this.role,
-                                country
-                            }
-                        }
-                    });
-
-                    if (signupError) throw signupError;
-
-                    // Save profile to database
-                    if (user) {
-                        const { error: insertError } = await this.supabase
-                            .from('profiles')
-                            .insert({
-                                id: user.id,
-                                email: user.email,
-                                company_name: company,
-                                ceo_name: ceo,
-                                role: this.role,
-                                country,
-                                created_at: new Date().toISOString()
-                            });
-
-                        if (insertError && insertError.code !== 'PGRST204') {
-                            console.warn('Profile insert error:', insertError);
-                        }
-                    }
-
-                    this.user = user;
-                    this.showToast('Account created! Check your email to confirm.', 'success');
-                    
-                    setTimeout(() => {
-                        document.getElementById('reg-email').value = '';
-                        document.getElementById('reg-password').value = '';
-                        document.getElementById('reg-confirm').value = '';
-                        this.switchTab('signin');
-                    }, 2000);
-                } catch (error) {
-                    this.showToast(error.message || 'Registration failed', 'error');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Create Account';
-                }
-            },
-
-            // Auth: Forgot password
-            showForgotPassword() {
-                this.switchTab('otp');
-            },
-
-            async handleOTP(e) {
-                e.preventDefault();
-                try {
-                    const email = document.getElementById('otp-email').value;
-                    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}?type=recovery`
-                    });
-                    
-                    if (error) throw error;
-                    this.showToast('Password reset link sent to your email', 'success');
-                    setTimeout(() => this.switchTab('signin'), 2000);
-                } catch (error) {
-                    this.showToast(error.message || 'Failed to send reset link', 'error');
-                }
-            },
-
-            // Dashboard: Switch module
-            switchModule(module) {
-                // Hide all modules
-                document.querySelectorAll('[id^="module-"]').forEach(el => {
-                    el.classList.add('hidden-app');
-                });
-
-                // Show selected module
-                document.getElementById(`module-${module}`).classList.remove('hidden-app');
-
-                // Update nav button states
-                document.querySelectorAll('nav.bottom-bar button').forEach(btn => {
-                    if (btn.getAttribute('data-module') === module) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-
-                this.currentModule = module;
-            },
-
-            // Load user profile info
-            async loadUserProfile() {
-                if (!this.user) return;
-
-                try {
-                    const { data, error } = await this.supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', this.user.id)
-                        .single();
-
-                    if (data) {
-                        const initial = (data.company_name || this.user.email)[0].toUpperCase();
-                        document.getElementById('profile-initial').textContent = initial;
-                        document.getElementById('profile-initial-lg').textContent = initial;
-                        document.getElementById('profile-name').textContent = data.company_name || 'User';
-                        document.getElementById('profile-email').textContent = this.user.email;
-                    }
-                } catch (error) {
-                    console.log('Profile load:', error);
-                }
-            },
-
-            // Logout
-            async logout() {
-                try {
-                    const { error } = await this.supabase.auth.signOut();
-                    if (error) throw error;
-
-                    this.user = null;
-                    localStorage.removeItem('userRole');
-                    this.showToast('Signed out successfully', 'success');
-                    
-                    setTimeout(() => {
-                        this.role = null;
-                        this.showRBAC();
-                    }, 1000);
-                } catch (error) {
-                    this.showToast('Logout failed', 'error');
-                }
-            },
-
-            // Utility: Toggle password visibility
-            togglePassword(fieldId) {
-                const field = document.getElementById(fieldId);
-                const icon = event.target;
-                if (field.type === 'password') {
-                    field.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    field.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            },
-
-            // Toast notifications
-            showToast(message, type = 'info') {
-                const toast = document.getElementById('toast');
-                toast.textContent = message;
-                toast.className = `toast ${type}`;
-                
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                }, 5000);
+        // Initialize Supabase. Fallback to demo mode if keys are untouched.
+        try {
+            if(SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
+                console.warn("Supabase keys not set. Running in Demo Mode.");
+                isDemoMode = true;
+            } else {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
-        };
+        } catch(e) {
+            console.error("Supabase Init Error:", e);
+            isDemoMode = true;
+        }
 
-        // Start app when DOM is ready
+        // ==========================================
+        // 2. BOOTSTRAP & UI ANIMATIONS
+        // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            app.init();
+            // Check session on load
+            checkSession();
+
+            // Splash Screen Animation Sequence
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.classList.add('hidden-app');
+                    if (!localStorage.getItem('bizlink_auth_token')) {
+                        document.getElementById('rbac-modal').classList.remove('hidden-app');
+                    }
+                }, 800);
+            }, 2500);
         });
+
+        function handleRoleSelection() {
+            const role = document.querySelector('input[name="role"]:checked').value;
+            localStorage.setItem('bizlink_role', role);
+            
+            document.getElementById('rbac-modal').classList.add('hidden-app');
+            
+            if (role === 'salesman' || role === 'viewer') {
+                showToast("Redirecting to Salesman Portal...", false);
+                // window.location.href = '2index.html'; // Actual redirect
+                document.getElementById('auth-container').classList.remove('hidden-app'); // For demo
+            } else {
+                document.getElementById('auth-container').classList.remove('hidden-app');
+            }
+        }
+
+        // ==========================================
+        // 3. UI INTERACTIONS (Tabs, Passwords, Toast, Image Preview)
+        // ==========================================
+        function showToast(message, isError = true) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = message;
+            
+            toast.className = isError 
+                ? "bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded mb-4 text-xs font-medium transform transition-all duration-300 translate-y-0 opacity-100 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                : "bg-green-500/10 border border-green-500/50 text-green-400 p-3 rounded mb-4 text-xs font-medium transform transition-all duration-300 translate-y-0 opacity-100 shadow-[0_0_10px_rgba(34,197,94,0.2)]";
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('-translate-y-2', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 4000);
+        }
+
+        function switchTab(tab) {
+            ['signin', 'signup', 'forgot'].forEach(t => {
+                document.getElementById(`form-${t}`).classList.add('hidden');
+            });
+            
+            const tabIn = document.getElementById('tab-signin');
+            const tabUp = document.getElementById('tab-signup');
+
+            if (tab === 'signin') {
+                document.getElementById('form-signin').classList.remove('hidden');
+                tabIn.innerHTML = `Sign In<div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t"></div>`;
+                tabIn.className = "text-gold font-semibold pb-3 px-1 relative";
+                tabUp.innerHTML = `Register Company<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>`;
+                tabUp.className = "text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition";
+            } else if (tab === 'signup') {
+                document.getElementById('form-signup').classList.remove('hidden');
+                tabUp.innerHTML = `Register Company<div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t"></div>`;
+                tabUp.className = "text-gold font-semibold pb-3 px-1 relative";
+                tabIn.innerHTML = `Sign In<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>`;
+                tabIn.className = "text-gray-500 hover:text-gray-300 font-semibold pb-3 px-1 relative transition";
+            }
+        }
+
+        function showForgotPassword() {
+            document.getElementById('form-signin').classList.add('hidden');
+            document.getElementById('form-signup').classList.add('hidden');
+            document.getElementById('form-forgot').classList.remove('hidden');
+            document.getElementById('tab-signin').className = "text-gray-500 pb-3 px-1 relative";
+            document.getElementById('tab-signup').className = "text-gray-500 pb-3 px-1 relative";
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling;
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Image Preview Handler
+        function previewImage(input, previewId, iconId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(previewId);
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    document.getElementById(iconId).style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ==========================================
+        // 4. SUPABASE AUTHENTICATION & DATABASE LOGIC
+        // ==========================================
+        
+        async function checkSession() {
+            if(isDemoMode) {
+                if(localStorage.getItem('bizlink_auth_token')) showDashboard();
+                return;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                showDashboard();
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
+
+            if (isDemoMode) {
+                setTimeout(() => {
+                    localStorage.setItem('bizlink_auth_token', 'demo_token');
+                    showToast("Login Successful!", false);
+                    showDashboard();
+                }, 1500);
+                return;
+            }
+
+            // Real Supabase Call
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: pass,
+            });
+
+            if (error) {
+                showToast(error.message);
+                btn.disabled = false;
+                btn.innerHTML = 'Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>';
+            } else {
+                showDashboard();
+            }
+        }
+
+        async function handleGoogleLogin() {
+            if (isDemoMode) {
+                showToast("Google OAuth simulated in Demo Mode.", false);
+                setTimeout(showDashboard, 1000);
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/index.html'
+                }
+            });
+
+            if (error) showToast(error.message);
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-signup');
+            
+            // Gather Data
+            const company = document.getElementById('reg-company').value;
+            const ceo = document.getElementById('reg-ceo').value;
+            const country = document.getElementById('reg-country').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            const conf = document.getElementById('reg-confirm').value;
+
+            // Files (For real upload you'd send these to supabase.storage)
+            const ceoFile = document.getElementById('file-ceo').files[0];
+            const logoFile = document.getElementById('file-logo').files[0];
+
+            if (pass !== conf) return showToast("Passwords do not match.");
+            if (!ceoFile || !logoFile) return showToast("Please upload both CEO and Company images.");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating Profile...';
+
+            if (isDemoMode) {
+                setTimeout(() => {
+                    showToast("Account & Company created! Please log in.", false);
+                    switchTab('signin');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Create Company Account';
+                }, 2000);
+                return;
+            }
+
+            // 1. REAL SUPABASE AUTH SIGNUP
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: pass,
+                options: {
+                    data: { full_name: ceo }
+                }
+            });
+
+            if (authError) {
+                showToast(authError.message);
+                btn.disabled = false;
+                btn.innerHTML = 'Create Company Account';
+                return;
+            }
+
+            // Note: In production, upload files to Supabase Storage here, get URLs, then insert DB.
+            const mockLogoUrl = "https://example.com/logo.png";
+            const mockCeoUrl = "https://example.com/ceo.png";
+
+            // 2. REAL SUPABASE DATABASE INSERT
+            const { error: dbError } = await supabase
+                .from('companies')
+                .insert([
+                    {
+                        owner_id: authData.user.id,
+                        company_name: company,
+                        ceo_name: ceo,
+                        country: country,
+                        email: email,
+                        logo_url: mockLogoUrl,
+                        ceo_image_url: mockCeoUrl
+                    }
+                ]);
+
+            if (dbError) {
+                showToast("Auth success, but failed to save company details: " + dbError.message);
+            } else {
+                showToast("Account created successfully! Check your email to verify.", false);
+                switchTab('signin');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Create Company Account';
+        }
+
+        async function handleOTP(e) {
+            e.preventDefault();
+            const email = document.getElementById('otp-email').value;
+            const btn = document.getElementById('btn-otp');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+
+            if(isDemoMode) {
+                setTimeout(() => {
+                    showToast("Recovery link sent!", false);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Send Reset Link';
+                }, 1000);
+                return;
+            }
+
+            const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+            if (error) showToast(error.message);
+            else showToast("Recovery email sent. Check your inbox.", false);
+            
+            btn.disabled = false;
+            btn.innerHTML = 'Send Reset Link';
+        }
+
+        // ==========================================
+        // 5. NAVIGATION / STATE TRANSITIONS
+        // ==========================================
+        function showDashboard() {
+            document.getElementById('splash').classList.add('hidden-app');
+            document.getElementById('rbac-modal').classList.add('hidden-app');
+            document.getElementById('auth-container').classList.add('hidden-app');
+            
+            // Show Dashboard (Simulated home.html)
+            const dashboard = document.getElementById('dashboard-container');
+            dashboard.classList.remove('hidden-app');
+            dashboard.style.opacity = '0';
+            
+            // Fade in effect
+            setTimeout(() => {
+                dashboard.style.transition = 'opacity 0.5s ease';
+                dashboard.style.opacity = '1';
+            }, 50);
+        }
+
+        async function logout() {
+            if(!isDemoMode) await supabase.auth.signOut();
+            localStorage.removeItem('bizlink_auth_token');
+            localStorage.removeItem('bizlink_role');
+            
+            document.getElementById('dashboard-container').classList.add('hidden-app');
+            document.getElementById('rbac-modal').classList.remove('hidden-app');
+            switchTab('signin');
+        }
     </script>
 </body>
 </html>
