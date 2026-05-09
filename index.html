@@ -1,643 +1,933 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <meta name="theme-color" content="#f5c000" />
-  <title>Bizlink – Golden's Business</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#f5c000">
+    <meta name="description" content="Bizlink - Golden's Business B2B Networking Hub">
+    <title>Bizlink – Golden's Business</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#f5c000', dark: '#d4a000', light: '#ffd740' },
+                        bizblue: { DEFAULT: '#0066ff', glow: '#4d94ff' },
+                        dark: { 900: '#050505', 800: '#111111', 700: '#1a1a1a' }
+                    },
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { textShadow: '0 0 15px rgba(0, 102, 255, 0.5), 0 0 30px rgba(0, 102, 255, 0.3)' },
+                            '50%': { textShadow: '0 0 25px rgba(0, 102, 255, 0.8), 0 0 50px rgba(0, 102, 255, 0.5)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Tailwind (optional runtime) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        .hidden-app { display: none !important; }
+        .visible-app { display: block !important; }
 
-  <style>
-    :root { --gold: #f5c000; --bizblue: #0066ff; --bg:#050505; --card:#111111; --muted:#9ca3af; }
-    html,body { height:100%; margin:0; font-family: 'Poppins',sans-serif; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased; }
-    .hidden-app { display:none !important; }
-    /* SPLASH */
-    #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#020202,#08070b); z-index:9999; transition:opacity .4s ease,visibility .4s; }
-    #splash .logo { font-size:3.2rem; color:var(--bizblue); font-weight:800; margin-bottom:.4rem; opacity:1; }
-    #splash .sub { color:var(--gold); font-weight:700; letter-spacing:.06em; margin-bottom:1rem; }
-    #splash .spinner { width:36px; height:36px; border-radius:999px; border:3px solid rgba(245,192,0,0.12); border-top-color:var(--gold); animation:spin 1s linear infinite }
-    @keyframes spin { to { transform:rotate(360deg); } }
+        /* --- SPLASH SCREEN --- */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #020202 0%, #0a0800 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+        }
 
-    /* Layout */
-    .centered { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem; }
-    .card { width:100%; max-width:1000px; display:grid; grid-template-columns:1fr 1fr; border-radius:14px; overflow:hidden; background:linear-gradient(180deg,#0b0b0b,#0f0f10); border:1px solid #222; box-shadow:0 10px 40px rgba(0,0,0,.6); }
-    .left { padding:2rem; background:linear-gradient(180deg,#070709,#0e0e10); }
-    .right { padding:2rem; }
+        #splash.hidden-app {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
 
-    .input-g { width:100%; padding:.75rem 1rem; border-radius:8px; border:1px solid #2b2b2b; background:#0d0d0d; color:#fff; outline:none; }
-    .input-g:focus { box-shadow:0 0 0 4px rgba(245,192,0,0.06); border-color:var(--gold); }
-    .btn-gold { background:linear-gradient(90deg,var(--gold),#d4a000); color:#050505; padding:.75rem 1rem; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
+        .splash-content {
+            text-align: center;
+        }
 
-    /* RBAC modal (who are you) */
-    #rbac-modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.65); z-index:9998; }
-    #rbac-card { background:#0b0b0b; padding:1.2rem; border-radius:12px; max-width:420px; width:94%; border:1px solid #222; }
+        .bizlink-logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #0066ff;
+            margin-bottom: 1rem;
+            animation: slideDown 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            text-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
+        }
 
-    /* Dashboard */
-    #dashboard-container { min-height:100vh; display:flex; flex-direction:column; }
-    header.topbar { display:flex; justify-content:space-between; align-items:center; padding:1rem; border-bottom:1px solid #222; background:#0f0f10; }
-    main.content { padding:1rem; flex:1; overflow:auto; }
-    nav.bottombar { position:fixed; left:0; right:0; bottom:0; background:#0f0f10; border-top:1px solid #222; display:flex; justify-content:space-around; padding:.6rem 0; z-index:40; }
-    nav.bottombar button { background:transparent; border:none; color:#9ca3af; display:flex; flex-direction:column; align-items:center; gap:.25rem; font-size:.85rem; cursor:pointer; }
-    nav.bottombar button.active { color:var(--gold); }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    /* small screens */
-    @media (max-width:900px){ .card { grid-template-columns:1fr; } .left{display:none;} }
-  </style>
+        .golden-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f5c000;
+            text-shadow: 0 0 15px rgba(245, 192, 0, 0.6);
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(245, 192, 0, 0.1);
+            border-top-color: #f5c000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
+        /* --- MAIN UI --- */
+        .input-g {
+            width: 100%;
+            background: #111111;
+            border: 1px solid #333;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .input-g:focus { 
+            border-color: #f5c000; 
+            box-shadow: 0 0 0 2px rgba(245, 192, 0, 0.15); 
+            background: #1a1a1a; 
+        }
+
+        .btn-gold {
+            background: linear-gradient(90deg, #f5c000, #d4a000);
+            color: #050505;
+            font-weight: 700;
+            padding: 0.85rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+
+        .btn-gold:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(245, 192, 0, 0.3); 
+        }
+
+        .btn-gold:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            z-index: 9998;
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 4.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+
+        .toast.success { background: #10b981; color: white; }
+        .toast.error { background: #ef4444; color: white; }
+        .toast.info { background: #3b82f6; color: white; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
+
+        /* Bottom Bar */
+        nav.bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #111111;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        nav.bottom-bar button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 0.75rem;
+            gap: 4px;
+            padding: 8px 12px;
+        }
+
+        nav.bottom-bar button i {
+            font-size: 1.5rem;
+        }
+
+        nav.bottom-bar button.active,
+        nav.bottom-bar button:hover {
+            color: #f5c000;
+        }
+
+        nav.bottom-bar button.center-btn {
+            position: relative;
+            margin-top: -30px;
+        }
+
+        nav.bottom-bar button.center-btn div {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #0066ff, #4d94ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.4);
+        }
+
+        nav.bottom-bar button.center-btn i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        main {
+            padding-bottom: 80px;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- SPLASH -->
-  <div id="splash" aria-hidden="false">
-    <div class="logo">Bizlink</div>
-    <div class="sub">GOLDEN'S BUSINESS</div>
-    <div class="spinner" aria-hidden="true"></div>
-  </div>
-
-  <!-- RBAC (who are you) -->
-  <div id="rbac-modal" class="hidden-app" aria-hidden="true">
-    <div id="rbac-card">
-      <h3 style="margin:0 0 .25rem 0">Who are you?</h3>
-      <p style="color:#bfc0c2;margin:0 0 .8rem;font-size:.95rem">Select a role to configure your experience</p>
-      <form id="rbac-form">
-        <div style="display:grid;gap:.6rem;margin-bottom:.6rem">
-          <label style="color:#ddd"><input type="radio" name="role" value="company" checked> Company</label>
-          <label style="color:#ddd"><input type="radio" name="role" value="ceo"> CEO / Executive</label>
-          <label style="color:#ddd"><input type="radio" name="role" value="salesman"> Salesman / Agent</label>
-          <label style="color:#ddd"><input type="radio" name="role" value="visitor"> Visitor / Buyer</label>
+    <!-- SPLASH SCREEN -->
+    <div id="splash">
+        <div class="splash-content">
+            <div class="bizlink-logo">Bizlink</div>
+            <div class="golden-text">GOLDEN'S BUSINESS</div>
+            <div class="spinner"></div>
         </div>
-        <div style="display:flex;gap:.6rem">
-          <button id="rbac-continue" type="button" class="btn-gold" style="flex:1">Continue</button>
-          <button id="rbac-skip" type="button" class="btn-gold" style="flex:1;background:#2b2b2b;color:#fff">Skip</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- AUTH CONTAINER -->
-  <div id="auth-container" class="hidden-app centered" aria-hidden="true">
-    <div class="card">
-      <div class="left">
-        <h1 style="color:var(--bizblue);margin:0;font-size:2rem;font-weight:800">Bizlink</h1>
-        <div style="color:var(--gold);margin-top:.4rem;font-weight:600">Golden's Business</div>
-        <p style="color:#bfc0c2;margin-top:1rem">The ultimate B2B networking hub — register your company, list products, and connect with buyers and agents globally.</p>
-      </div>
-
-      <div class="right">
-        <div style="display:flex;gap:.6rem;align-items:center">
-          <button id="tab-signin" class="text-gold" style="background:transparent;border:none;font-weight:700">Sign In</button>
-          <button id="tab-signup" class="text-muted" style="background:transparent;border:none;color:#9ca3af">Register Company</button>
+    <!-- RBAC MODAL -->
+    <div id="rbac-modal" class="hidden-app fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="bg-dark-800 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-48 h-48 bg-gold/10 rounded-full blur-3xl"></div>
+            
+            <h2 class="text-3xl font-bold text-white mb-2 text-center">Welcome to <span class="text-bizblue">Bizlink</span></h2>
+            <p class="text-gray-400 text-sm mb-8 text-center">Select your role to get started</p>
+            
+            <div class="space-y-4 relative z-10">
+                <label class="block cursor-pointer group">
+                    <input type="radio" name="role" value="owner" class="peer sr-only" checked>
+                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-building text-gold mr-2"></i> Company Owner</div>
+                        <div class="text-xs text-gray-400 mt-1 ml-6">Full admin access</div>
+                    </div>
+                </label>
+                <label class="block cursor-pointer group">
+                    <input type="radio" name="role" value="manager" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-gold/50 peer-checked:border-gold peer-checked:bg-gold/10 transition-all">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-user-tie text-gold mr-2"></i> Company Manager</div>
+                        <div class="text-xs text-gray-400 mt-1 ml-6">Manage products & sales</div>
+                    </div>
+                </label>
+                <label class="block cursor-pointer group">
+                    <input type="radio" name="role" value="salesman" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-briefcase text-bizblue mr-2"></i> Salesman/Agent</div>
+                        <div class="text-xs text-gray-400 mt-1 ml-6">Browse & network</div>
+                    </div>
+                </label>
+                <label class="block cursor-pointer group">
+                    <input type="radio" name="role" value="visitor" class="peer sr-only">
+                    <div class="p-4 rounded-xl border border-gray-700 group-hover:border-bizblue/50 peer-checked:border-bizblue peer-checked:bg-bizblue/10 transition-all">
+                        <div class="font-semibold text-white"><i class="fa-solid fa-eye text-bizblue mr-2"></i> Visitor</div>
+                        <div class="text-xs text-gray-400 mt-1 ml-6">Browse only</div>
+                    </div>
+                </label>
+            </div>
+            
+            <button onclick="app.handleRoleSelection()" class="btn-gold w-full mt-8 flex justify-center items-center gap-2">
+                Continue <i class="fa-solid fa-arrow-right"></i>
+            </button>
         </div>
-
-        <div id="toast-msg" style="display:none;margin-top:.8rem;padding:.6rem;border-radius:8px"></div>
-
-        <!-- Sign in -->
-        <form id="form-signin" style="margin-top:1rem">
-          <button type="button" id="btn-google" class="w-full" style="background:#fff;color:#111;padding:.6rem;border-radius:8px;border:1px solid #ddd;font-weight:700;margin-bottom:.6rem">
-            <i class="fa-brands fa-google" style="margin-right:.6rem"></i>Continue with Google
-          </button>
-
-          <div style="display:flex;align-items:center;gap:.6rem;margin:8px 0;color:#9ca3af;font-size:.8rem">
-            <div style="flex:1;border-top:1px solid #232323"></div><div>Or email</div><div style="flex:1;border-top:1px solid #232323"></div>
-          </div>
-
-          <label style="font-size:.85rem;color:#bfc0c2">Email</label>
-          <input id="login-email" class="input-g" type="email" placeholder="you@company.com" required style="margin-bottom:.6rem">
-
-          <label style="font-size:.85rem;color:#bfc0c2">Password</label>
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <input id="login-password" class="input-g" type="password" placeholder="••••••••" required>
-            <button type="button" onclick="togglePassword('login-password')" title="Toggle" style="background:transparent;border:none;color:#9ca3af"><i class="fa-regular fa-eye"></i></button>
-          </div>
-
-          <div style="margin-top:.8rem">
-            <button id="btn-login" class="btn-gold" type="submit" style="width:100%">Sign In</button>
-          </div>
-
-          <div style="margin-top:.6rem;text-align:center">
-            <a href="#" id="forgot-link" style="color:var(--gold);font-size:.9rem">Forgot password?</a>
-          </div>
-        </form>
-
-        <!-- Sign up -->
-        <form id="form-signup" class="hidden-app" style="margin-top:1rem" aria-hidden="true">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-            <input id="reg-company" class="input-g" placeholder="Company name" required>
-            <input id="reg-ceo" class="input-g" placeholder="CEO / Your name" required>
-          </div>
-
-          <div style="margin-top:.6rem">
-            <input id="reg-email" class="input-g" type="email" placeholder="contact@company.com" required>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem">
-            <input id="reg-password" class="input-g" type="password" placeholder="Password" required>
-            <input id="reg-confirm" class="input-g" type="password" placeholder="Confirm password" required>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem">
-            <label style="background:#0b0b0b;border:1px dashed #222;padding:.6rem;border-radius:8px;text-align:center;cursor:pointer">
-              <input id="file-ceo" type="file" accept="image/*" style="display:none">
-              <div>Upload CEO Photo</div>
-            </label>
-            <label style="background:#0b0b0b;border:1px dashed #222;padding:.6rem;border-radius:8px;text-align:center;cursor:pointer">
-              <input id="file-logo" type="file" accept="image/*" style="display:none">
-              <div>Upload Company Logo</div>
-            </label>
-          </div>
-
-          <div style="margin-top:1rem">
-            <button id="btn-signup" class="btn-gold" type="submit" style="width:100%">Create Company Account</button>
-          </div>
-        </form>
-
-        <!-- Forgot (simple) -->
-        <form id="form-forgot" class="hidden-app" style="margin-top:1rem" aria-hidden="true">
-          <label style="font-size:.9rem;color:#bfc0c2">Registered Email</label>
-          <input id="otp-email" class="input-g" type="email" placeholder="you@company.com" required>
-          <div style="margin-top:1rem">
-            <button id="btn-otp" class="btn-gold" type="submit" style="width:100%">Send Reset Link</button>
-          </div>
-          <div style="margin-top:.6rem;text-align:center">
-            <button type="button" id="forgot-back" style="background:transparent;border:none;color:#9ca3af">Back to Sign In</button>
-          </div>
-        </form>
-
-      </div>
     </div>
-  </div>
 
-  <!-- DASHBOARD (in-page fallback if home.html absent) -->
-  <div id="dashboard-container" class="hidden-app" aria-hidden="true">
-    <header class="topbar">
-      <div style="font-weight:800;color:var(--bizblue)">Bizlink</div>
-      <div style="display:flex;align-items:center;gap:.6rem">
-        <button title="Notifications" style="background:transparent;border:none;color:#9ca3af"><i class="fa-solid fa-bell"></i></button>
-        <div id="user-avatar" title="Logout" style="width:36px;height:36px;border-radius:999px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#050505;font-weight:700;cursor:pointer">C</div>
-      </div>
-    </header>
+    <!-- AUTH CONTAINER -->
+    <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden border border-gray-800">
+            
+            <!-- Left: Branding -->
+            <div class="p-8 bg-gradient-to-br from-[#0a0a0a] to-[#111111] flex flex-col justify-between hidden md:flex relative">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
+                
+                <div>
+                    <h1 class="text-4xl font-bold text-bizblue mb-1">Bizlink</h1>
+                    <p class="text-gold text-xs font-medium tracking-widest uppercase">Golden's Business</p>
+                </div>
+                
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-4">The Ultimate B2B Networking Hub</h2>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><i class="fa-solid fa-box text-gold mr-2"></i> Unlimited Product Listings</li>
+                        <li><i class="fa-solid fa-globe text-bizblue mr-2"></i> Global Marketplace</li>
+                        <li><i class="fa-solid fa-handshake text-gold mr-2"></i> Secure Transactions</li>
+                        <li><i class="fa-solid fa-shield text-bizblue mr-2"></i> Protected Data</li>
+                    </ul>
+                </div>
+                
+                <div class="flex gap-4 text-gray-500 text-xs">
+                    <a href="#" class="hover:text-gold">Terms</a>
+                    <a href="#" class="hover:text-gold">Privacy</a>
+                </div>
+            </div>
 
-    <main class="content">
-      <div style="max-width:900px;margin:0 auto">
-        <h2 id="welcome-msg">Welcome</h2>
-        <p style="color:#bfc0c2">Your hub — use the bottom navigation to open modules.</p>
+            <!-- Right: Forms -->
+            <div class="p-8 bg-[#111111] relative">
+                
+                <!-- Tabs -->
+                <div class="flex gap-8 mb-8 border-b border-gray-800 pb-4">
+                    <button onclick="app.switchTab('signin')" id="tab-signin" class="text-gold font-semibold relative">
+                        Sign In
+                        <div class="absolute -bottom-4 left-0 w-full h-0.5 bg-gold rounded-t"></div>
+                    </button>
+                    <button onclick="app.switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-semibold relative">
+                        Register
+                        <div class="absolute -bottom-4 left-0 w-full h-0.5 bg-transparent rounded-t"></div>
+                    </button>
+                </div>
 
-        <section style="margin-top:1rem;background:#0b0b0b;padding:1rem;border-radius:10px">
-          <h3 style="margin:0 0 .5rem 0">Recommended Products</h3>
-          <div style="display:flex;gap:.75rem;overflow:auto;padding-bottom:.5rem">
-            <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Gold Watch<br><span style="color:var(--gold)">$4,999</span></div>
-            <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Steel Pipe x100<br><span style="color:var(--gold)">$1,200</span></div>
-            <div style="min-width:140px;background:#111;padding:.6rem;border-radius:8px">Circuit Boards<br><span style="color:var(--gold)">$850</span></div>
-          </div>
-        </section>
-      </div>
-    </main>
+                <!-- Toast -->
+                <div id="toast" class="hidden"></div>
 
-    <nav class="bottombar" role="navigation">
-      <button id="nav-home" class="active" onclick="navClick('home')"><i class="fa-solid fa-house"></i><span>Home</span></button>
-      <button id="nav-reels" onclick="navClick('reels')"><i class="fa-solid fa-play"></i><span>Reels</span></button>
-      <button id="nav-add" onclick="navClick('add')"><div style="width:44px;height:44px;border-radius:999px;background:var(--bizblue);display:flex;align-items:center;justify-content:center;color:#fff"><i class="fa-solid fa-plus"></i></div></button>
-      <button id="nav-products" onclick="navClick('products')"><i class="fa-solid fa-box-open"></i><span>Products</span></button>
-      <button id="nav-profile" onclick="navClick('profile')"><i class="fa-solid fa-user"></i><span>Profile</span></button>
-    </nav>
-  </div>
+                <!-- SIGN IN FORM -->
+                <form id="form-signin" onsubmit="app.handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
+                        <input type="email" id="login-email" class="input-g" required placeholder="you@company.com">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-xs font-medium text-gray-400">Password</label>
+                            <button type="button" onclick="app.showForgotPassword()" class="text-[11px] text-gold hover:underline">Forgot?</button>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
+                            <i class="fa-regular fa-eye absolute right-3 top-3 text-gray-500 cursor-pointer hover:text-gold" onclick="app.togglePassword('login-password')"></i>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-login" class="btn-gold w-full mt-6 flex justify-center items-center gap-2">
+                        Sign In <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <div class="text-xs text-center text-gray-500">
+                        New here? <button type="button" onclick="app.switchTab('signup')" class="text-gold hover:underline">Create account</button>
+                    </div>
+                </form>
 
-  <script>
-    /* ------------------ CONFIG ------------------ */
-    const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU-nU7eF-mHH6Vt_tMK-zVg8Wgzk0X5t3a9kL8qU';
-    let supabase = null;
-    let isDemoMode = false;
-    let currentUser = null;
-    const STORAGE_BUCKET = 'company-assets'; // create this bucket in Supabase if you want uploads
+                <!-- SIGN UP FORM -->
+                <form id="form-signup" onsubmit="app.handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="reg-company" class="input-g" required placeholder="Your Company">
+                    </div>
 
-    try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } catch (e) {
-      console.warn('Supabase client init failed, switching to demo mode.', e);
-      isDemoMode = true;
-    }
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">CEO Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="reg-ceo" class="input-g" required placeholder="John Doe">
+                    </div>
 
-    /* ---------- tiny helpers ---------- */
-    const el = id => document.getElementById(id);
-    function showToast(message, success = false) {
-      const t = el('toast-msg');
-      if (!t) return;
-      t.style.display = 'block';
-      t.style.background = success ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.06)';
-      t.style.color = success ? '#10b981' : '#ef4444';
-      t.textContent = message;
-      clearTimeout(t._hideTimer);
-      t._hideTimer = setTimeout(()=> t.style.display = 'none', 3500);
-    }
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
+                        <select id="reg-country" class="input-g" required>
+                            <option value="">Select Country</option>
+                            <option value="UAE">United Arab Emirates</option>
+                            <option value="USA">United States</option>
+                            <option value="IND">India</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="CAN">Canada</option>
+                            <option value="JAP">Japan</option>
+                        </select>
+                    </div>
 
-    /* ---------- SPLASH & SESSION ---------- */
-    async function init() {
-      // safety: hide splash after max ms to avoid indefinite spinner (in case of unexpected errors)
-      const MAX_SPLASH = 6000;
-      const safety = setTimeout(()=> {
-        console.warn('Splash safety timeout triggered');
-        proceedAfterSplash();
-      }, MAX_SPLASH);
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Email <span class="text-red-500">*</span></label>
+                        <input type="email" id="reg-email" class="input-g" required placeholder="contact@company.com">
+                    </div>
 
-      await tryRestoreSession();
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
+                        <input type="password" id="reg-password" class="input-g" required minlength="8" placeholder="Min 8 characters">
+                    </div>
 
-      // attach UI handlers (now that elements are ready)
-      attachUIHandlers();
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Confirm Password <span class="text-red-500">*</span></label>
+                        <input type="password" id="reg-confirm" class="input-g" required placeholder="Confirm password">
+                    </div>
 
-      clearTimeout(safety);
-      // give minimal visible time then proceed
-      setTimeout(proceedAfterSplash, 450);
-    }
+                    <label class="flex items-center gap-2 text-xs">
+                        <input type="checkbox" id="reg-terms" required class="w-4 h-4 cursor-pointer">
+                        <span class="text-gray-400">I agree to <span class="text-gold hover:underline cursor-pointer">Terms & Privacy</span></span>
+                    </label>
 
-    async function tryRestoreSession() {
-      if (!supabase || isDemoMode) {
-        const token = localStorage.getItem('bizlink_auth_token');
-        if (token) {
-          currentUser = { email: localStorage.getItem('bizlink_email') || 'demo@local' };
-          console.log('[init] demo session restored');
-        }
-        return;
-      }
+                    <button type="submit" id="btn-signup" class="btn-gold w-full mt-4">
+                        Create Account
+                    </button>
+                </form>
 
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user) {
-          currentUser = session.user;
-          localStorage.setItem('bizlink_auth_token', session.access_token || '');
-          localStorage.setItem('bizlink_email', session.user.email || '');
-          console.log('[init] supabase session found for', session.user.email);
-        }
-        // subscribe to auth changes
-        supabase.auth.onAuthStateChange((event, session) => {
-          console.log('[auth change]', event);
-          if (session && session.user) {
-            currentUser = session.user;
-            localStorage.setItem('bizlink_auth_token', session.access_token || '');
-            localStorage.setItem('bizlink_email', session.user.email || '');
-            // show dashboard automatically when signed in
-            showDashboardOrRedirect();
-          } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
-            localStorage.removeItem('bizlink_auth_token');
-            localStorage.removeItem('bizlink_email');
-          }
-        });
-      } catch (err) {
-        console.warn('restore session failed', err);
-      }
-    }
+                <!-- OTP FORM -->
+                <form id="form-otp" onsubmit="app.handleOTP(event)" class="hidden space-y-4">
+                    <h3 class="text-lg font-bold text-white">Reset Password</h3>
+                    <p class="text-xs text-gray-400">Enter your email to receive a reset link</p>
+                    
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1.5">Email</label>
+                        <input type="email" id="otp-email" class="input-g" required placeholder="you@company.com">
+                    </div>
+                    
+                    <button type="submit" class="btn-gold w-full">Send Reset Link</button>
+                    <button type="button" onclick="app.switchTab('signin')" class="w-full text-xs text-gray-500 hover:text-white">Back to Sign In</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    async function resourceExists(url) {
-      try {
-        const res = await fetch(url, { method: 'HEAD' });
-        return res.ok;
-      } catch (e) {
-        return false;
-      }
-    }
+    <!-- DASHBOARD -->
+    <div id="dashboard-container" class="hidden-app min-h-screen bg-dark-900">
+        <!-- Header -->
+        <header class="bg-dark-800 border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-20">
+            <h1 class="text-xl font-bold text-bizblue">Bizlink</h1>
+            <div class="flex items-center gap-4">
+                <button class="text-gray-400 hover:text-white relative">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer text-xs" onclick="app.logout()">
+                    <span id="profile-initial">G</span>
+                </div>
+            </div>
+        </header>
 
-    async function proceedAfterSplash() {
-      const splash = el('splash');
-      if (splash) { splash.style.opacity = '0'; setTimeout(()=> { splash.classList.add('hidden-app'); splash.setAttribute('aria-hidden','true'); }, 350); }
+        <!-- Main Content -->
+        <main class="pb-24 px-4">
+            <!-- Home Module (Default) -->
+            <div id="module-home" class="visible-app">
+                <div class="max-w-3xl mx-auto py-6 space-y-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Welcome to Bizlink</h2>
+                    
+                    <!-- Search -->
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500"></i>
+                        <input type="text" class="w-full bg-dark-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-sm focus:border-gold outline-none" placeholder="Search products...">
+                    </div>
 
-      // if authenticated -> try redirect to home.html else show in-page dashboard
-      const token = localStorage.getItem('bizlink_auth_token');
-      if (currentUser || token) {
-        await showDashboardOrRedirect();
-        return;
-      }
+                    <!-- Featured Products -->
+                    <div class="bg-dark-800 rounded-xl p-4 border border-gray-800">
+                        <h3 class="text-lg font-bold text-white mb-4">Featured Products</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
+                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
+                                <div class="text-sm font-medium text-white">Product 1</div>
+                                <div class="text-xs text-gold">$999</div>
+                            </div>
+                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
+                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
+                                <div class="text-sm font-medium text-white">Product 2</div>
+                                <div class="text-xs text-gold">$1,200</div>
+                            </div>
+                            <div class="bg-dark-700 rounded-lg p-3 hover:border-gold border border-transparent transition">
+                                <div class="h-20 bg-gray-700 rounded mb-2"></div>
+                                <div class="text-sm font-medium text-white">Product 3</div>
+                                <div class="text-xs text-gold">$850</div>
+                            </div>
+                        </div>
+                    </div>
 
-      // not authenticated -> show RBAC modal then auth
-      el('rbac-modal')?.classList.remove('hidden-app');
-      el('rbac-modal')?.setAttribute('aria-hidden','false');
-    }
+                    <div class="text-center text-xs text-gray-500">
+                        <p>More features coming soon...</p>
+                    </div>
+                </div>
+            </div>
 
-    /* ---------- UI handlers ---------- */
-    function attachUIHandlers() {
-      // RBAC
-      el('rbac-continue')?.addEventListener('click', handleRoleSelection);
-      el('rbac-skip')?.addEventListener('click', ()=>{ el('rbac-modal')?.classList.add('hidden-app'); el('auth-container')?.classList.remove('hidden-app'); });
+            <!-- Reels Module -->
+            <div id="module-reels" class="hidden-app max-w-3xl mx-auto py-6">
+                <h2 class="text-2xl font-bold text-white mb-4">Reels & Videos</h2>
+                <div class="text-center text-gray-400 py-12">
+                    <i class="fa-solid fa-film text-4xl text-gold mb-4 block"></i>
+                    <p>Reels module coming soon...</p>
+                </div>
+            </div>
 
-      // Tabs
-      el('tab-signin')?.addEventListener('click', ()=>switchTab('signin'));
-      el('tab-signup')?.addEventListener('click', ()=>switchTab('signup'));
+            <!-- Add Module -->
+            <div id="module-add" class="hidden-app max-w-3xl mx-auto py-6">
+                <h2 class="text-2xl font-bold text-white mb-4">Add Product</h2>
+                <div class="bg-dark-800 rounded-xl p-6 border border-gray-800">
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Product Name</label>
+                            <input type="text" class="input-g" placeholder="Enter product name">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Price</label>
+                            <input type="number" class="input-g" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">Description</label>
+                            <textarea class="input-g h-24 resize-none" placeholder="Describe your product..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-gold w-full">Add Product</button>
+                    </form>
+                </div>
+            </div>
 
-      // Forms
-      el('form-signin')?.addEventListener('submit', handleLogin);
-      el('form-signup')?.addEventListener('submit', handleSignup);
-      el('form-forgot')?.addEventListener('submit', handleOTP);
+            <!-- Products Module -->
+            <div id="module-products" class="hidden-app max-w-3xl mx-auto py-6">
+                <h2 class="text-2xl font-bold text-white mb-4">My Products</h2>
+                <div class="text-center text-gray-400 py-12">
+                    <i class="fa-solid fa-box text-4xl text-gold mb-4 block"></i>
+                    <p>No products yet. Start adding your products!</p>
+                </div>
+            </div>
 
-      // forgot link
-      el('forgot-link')?.addEventListener('click', (ev)=>{ ev.preventDefault(); switchTab('forgot'); });
+            <!-- Profile Module -->
+            <div id="module-profile" class="hidden-app max-w-3xl mx-auto py-6">
+                <h2 class="text-2xl font-bold text-white mb-4">Profile</h2>
+                <div class="bg-dark-800 rounded-xl p-6 border border-gray-800 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-black text-xl font-bold">
+                            <span id="profile-initial-lg">G</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white" id="profile-name">Loading...</h3>
+                            <p class="text-xs text-gray-400" id="profile-email">email@company.com</p>
+                        </div>
+                    </div>
+                    <hr class="border-gray-700">
+                    <button onclick="app.logout()" class="w-full py-2 px-4 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition">
+                        <i class="fa-solid fa-sign-out-alt mr-2"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+        </main>
 
-      // forgot back
-      el('forgot-back')?.addEventListener('click', ()=> switchTab('signin'));
+        <!-- Bottom Navigation -->
+        <nav class="bottom-bar">
+            <button onclick="app.switchModule('home')" data-module="home" class="active">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </button>
+            <button onclick="app.switchModule('reels')" data-module="reels">
+                <i class="fa-solid fa-play"></i>
+                <span>Reels</span>
+            </button>
+            <button onclick="app.switchModule('add')" data-module="add" class="center-btn">
+                <div>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <span>Add</span>
+            </button>
+            <button onclick="app.switchModule('products')" data-module="products">
+                <i class="fa-solid fa-box"></i>
+                <span>Products</span>
+            </button>
+            <button onclick="app.switchModule('profile')" data-module="profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Profile</span>
+            </button>
+        </nav>
+    </div>
 
-      // google auth
-      el('btn-google')?.addEventListener('click', handleGoogleLogin);
+    <!-- Main App Script -->
+    <script>
+        const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU6N4MJXvLJ-0LGF6LqLF7fZ6v3eB9J8K_1-xqaY';
 
-      // clickable file labels (open inputs)
-      document.querySelectorAll('label input[type="file"]').forEach(inp => {
-        const label = inp.closest('label');
-        if (label) label.addEventListener('click', ()=> {});
-      });
+        const app = {
+            supabase: null,
+            user: null,
+            role: null,
+            currentModule: 'home',
 
-      // dashboard avatar logout
-      el('user-avatar')?.addEventListener('click', () => {
-        if (confirm('Sign out?')) logout();
-      });
-    }
+            // Initialize app
+            async init() {
+                try {
+                    // Initialize Supabase
+                    this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // Check existing session
+                    await this.checkSession();
+                } catch (error) {
+                    console.error('Init error:', error);
+                    this.showToast('Error initializing app', 'error');
+                    setTimeout(() => this.showAuthFlow(), 2000);
+                }
+            },
 
-    function handleRoleSelection() {
-      const sel = document.querySelector('input[name="role"]:checked');
-      const role = sel ? sel.value : 'visitor';
-      localStorage.setItem('bizlink_role', role);
-      el('rbac-modal')?.classList.add('hidden-app');
-      el('rbac-modal')?.setAttribute('aria-hidden','true');
+            // Check if user is already logged in
+            async checkSession() {
+                const { data: { session } } = await this.supabase.auth.getSession();
+                
+                // Small delay to allow splash animation
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // if role is salesman/visitor we allow immediate redirect to 2index.html (if present) else show auth
-      if (role === 'salesman' || role === 'visitor') {
-        showToast('You selected: ' + role + '. Redirecting...', true);
-        // try redirect to 2index.html; if doesn't exist, show auth container
-        resourceExists('2index.html').then(exists => {
-          if (exists) window.location.href = '2index.html';
-          else el('auth-container')?.classList.remove('hidden-app');
-        });
-      } else {
-        el('auth-container')?.classList.remove('hidden-app');
-      }
-    }
+                if (session) {
+                    this.user = session.user;
+                    this.role = localStorage.getItem('userRole') || 'owner';
+                    this.hideSplash();
+                    this.showDashboard();
+                    this.loadUserProfile();
+                } else {
+                    this.hideSplash();
+                    // Check if user selected role before
+                    const savedRole = localStorage.getItem('userRole');
+                    if (savedRole) {
+                        this.role = savedRole;
+                        this.showAuthFlow();
+                    } else {
+                        this.showRBAC();
+                    }
+                }
+            },
 
-    function switchTab(tab) {
-      ['signin','signup','forgot'].forEach(t => {
-        const elForm = document.getElementById('form-' + t);
-        if (!elForm) return;
-        if (t === tab) {
-          elForm.classList.remove('hidden-app'); elForm.setAttribute('aria-hidden','false');
-        } else {
-          elForm.classList.add('hidden-app'); elForm.setAttribute('aria-hidden','true');
-        }
-      });
+            // Show/Hide functions
+            hideSplash() {
+                const splash = document.getElementById('splash');
+                if (splash) {
+                    splash.classList.add('hidden-app');
+                }
+            },
 
-      // visual tab coloring
-      el('tab-signin').style.color = tab === 'signin' ? 'var(--gold)' : '#9ca3af';
-      el('tab-signup').style.color = tab === 'signup' ? 'var(--gold)' : '#9ca3af';
-    }
+            showRBAC() {
+                this.hideAll();
+                document.getElementById('rbac-modal').classList.remove('hidden-app');
+            },
 
-    function togglePassword(id) {
-      const i = el(id);
-      if (!i) return;
-      i.type = i.type === 'password' ? 'text' : 'password';
-    }
+            showAuthFlow() {
+                this.hideAll();
+                document.getElementById('auth-container').classList.remove('hidden-app');
+            },
 
-    /* ---------- AUTH: sign in / signup / google / reset ---------- */
+            showDashboard() {
+                this.hideAll();
+                document.getElementById('dashboard-container').classList.remove('hidden-app');
+            },
 
-    async function handleLogin(e) {
-      e?.preventDefault?.();
-      const email = el('login-email')?.value?.trim();
-      const password = el('login-password')?.value;
-      const btn = el('btn-login');
-      if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+            hideAll() {
+                document.getElementById('rbac-modal').classList.add('hidden-app');
+                document.getElementById('auth-container').classList.add('hidden-app');
+                document.getElementById('dashboard-container').classList.add('hidden-app');
+            },
 
-      try {
-        if (!supabase || isDemoMode) {
-          // demo fallback
-          await new Promise(r=>setTimeout(r,700));
-          localStorage.setItem('bizlink_auth_token', 'demo:' + Date.now());
-          localStorage.setItem('bizlink_email', email || 'demo@local');
-          currentUser = { email: email || 'demo@local' };
-          showToast('Signed in (demo)', true);
-          el('auth-container')?.classList.add('hidden-app');
-          await showDashboardOrRedirect();
-          return;
-        }
+            // RBAC: Handle role selection
+            handleRoleSelection() {
+                const role = document.querySelector('input[name="role"]:checked').value;
+                this.role = role;
+                localStorage.setItem('userRole', role);
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+                if (role === 'visitor') {
+                    // Visitor mode - can view but no account needed
+                    this.showDashboard();
+                } else {
+                    // Company owner, manager, salesman - need to signin/signup
+                    this.showAuthFlow();
+                }
+            },
 
-        // if session exists we store token
-        if (data?.session) {
-          localStorage.setItem('bizlink_auth_token', data.session.access_token || '');
-          localStorage.setItem('bizlink_email', data.user?.email || email || '');
-          currentUser = data.user || null;
-        }
+            // Auth: Switch between tabs
+            switchTab(tab) {
+                document.getElementById('form-signin').classList.toggle('hidden-app', tab !== 'signin');
+                document.getElementById('form-signup').classList.toggle('hidden-app', tab !== 'signup');
+                document.getElementById('form-otp').classList.toggle('hidden-app', tab !== 'otp');
 
-        showToast('Signed in successfully', true);
+                document.getElementById('tab-signin').classList.toggle('text-gold', tab === 'signin');
+                document.getElementById('tab-signin').classList.toggle('text-gray-500', tab !== 'signin');
+                document.getElementById('tab-signup').classList.toggle('text-gold', tab === 'signup');
+                document.getElementById('tab-signup').classList.toggle('text-gray-500', tab !== 'signup');
+            },
 
-        // if role salesman -> try redirect to 2index
-        const role = localStorage.getItem('bizlink_role');
-        if (role === 'salesman' && await resourceExists('2index.html')) {
-          window.location.href = '2index.html'; return;
-        }
+            // Auth: Login
+            async handleLogin(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btn-login');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Signing In...';
 
-        // attempt home.html redirect if present
-        if (await resourceExists('home.html')) { window.location.href = 'home.html'; return; }
+                try {
+                    const email = document.getElementById('login-email').value;
+                    const password = document.getElementById('login-password').value;
 
-        el('auth-container')?.classList.add('hidden-app');
-        await showDashboardOrRedirect();
+                    const { data: { user }, error } = await this.supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
 
-      } catch (err) {
-        console.error(err);
-        showToast(err?.message || 'Sign in failed');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
-      }
-    }
+                    if (error) throw error;
 
-    async function handleGoogleLogin() {
-      try {
-        if (!supabase || isDemoMode) {
-          showToast('Google OAuth simulated (demo).', true);
-          await new Promise(r=>setTimeout(r,700));
-          localStorage.setItem('bizlink_auth_token', 'demo-google:' + Date.now());
-          localStorage.setItem('bizlink_email', 'google-demo@local');
-          currentUser = { email: 'google-demo@local' };
-          await showDashboardOrRedirect();
-          return;
-        }
+                    this.user = user;
+                    localStorage.setItem('userRole', this.role);
+                    this.showToast('Signed in successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        this.showDashboard();
+                        this.loadUserProfile();
+                    }, 1000);
+                } catch (error) {
+                    this.showToast(error.message || 'Sign in failed', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right ml-2"></i>';
+                }
+            },
 
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.origin + '/index.html' }
-        });
-        if (error) showToast(error.message);
-      } catch (e) { console.error(e); showToast('Google sign in failed'); }
-    }
+            // Auth: Register
+            async handleSignup(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btn-signup');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Creating...';
 
-    async function handleSignup(e) {
-      e?.preventDefault?.();
-      const company = el('reg-company')?.value?.trim();
-      const ceo = el('reg-ceo')?.value?.trim();
-      const email = el('reg-email')?.value?.trim();
-      const password = el('reg-password')?.value;
-      const confirm = el('reg-confirm')?.value;
-      const btn = el('btn-signup');
+                try {
+                    const email = document.getElementById('reg-email').value;
+                    const password = document.getElementById('reg-password').value;
+                    const confirm = document.getElementById('reg-confirm').value;
+                    const company = document.getElementById('reg-company').value;
+                    const ceo = document.getElementById('reg-ceo').value;
+                    const country = document.getElementById('reg-country').value;
 
-      if (!company || !ceo || !email || !password) return showToast('Please fill all fields');
-      if (password !== confirm) return showToast('Passwords do not match');
+                    if (password !== confirm) {
+                        throw new Error('Passwords do not match');
+                    }
 
-      btn.disabled = true; btn.textContent = 'Creating...';
+                    // Sign up with Supabase Auth
+                    const { data: { user }, error: signupError } = await this.supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                company_name: company,
+                                ceo_name: ceo,
+                                role: this.role,
+                                country
+                            }
+                        }
+                    });
 
-      try {
-        if (!supabase || isDemoMode) {
-          await new Promise(r=>setTimeout(r,900));
-          showToast('Account created (demo). Please sign in.', true);
-          switchTab('signin');
-          return;
-        }
+                    if (signupError) throw signupError;
 
-        // Create auth user
-        const { data: signData, error: signError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: ceo } }
-        });
-        if (signError) throw signError;
+                    // Save profile to database
+                    if (user) {
+                        const { error: insertError } = await this.supabase
+                            .from('profiles')
+                            .insert({
+                                id: user.id,
+                                email: user.email,
+                                company_name: company,
+                                ceo_name: ceo,
+                                role: this.role,
+                                country,
+                                created_at: new Date().toISOString()
+                            });
 
-        const ownerId = signData?.user?.id || null;
-        // Upload files if present
-        let logoUrl = null, ceoUrl = null;
-        try {
-          const ceoFile = el('file-ceo')?.files?.[0];
-          const logoFile = el('file-logo')?.files?.[0];
-          const timestamp = Date.now();
-          if (ceoFile && supabase.storage) {
-            const path = `company_${timestamp}/ceo_${ceoFile.name}`;
-            const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, ceoFile, { upsert: true });
-            if (!upErr) {
-              const pu = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-              ceoUrl = pu?.data?.publicUrl || null;
-            } else console.warn('ceo upload err', upErr);
-          }
-          if (logoFile && supabase.storage) {
-            const path = `company_${timestamp}/logo_${logoFile.name}`;
-            const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, logoFile, { upsert: true });
-            if (!upErr) {
-              const pu = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-              logoUrl = pu?.data?.publicUrl || null;
-            } else console.warn('logo upload err', upErr);
-          }
-        } catch (upErr) {
-          console.warn('file upload failed', upErr);
-        }
+                        if (insertError && insertError.code !== 'PGRST204') {
+                            console.warn('Profile insert error:', insertError);
+                        }
+                    }
 
-        // Insert company record
-        const companyRow = {
-          owner_id: ownerId,
-          company_name: company,
-          ceo_name: ceo,
-          email,
-          logo_url: logoUrl,
-          ceo_image_url: ceoUrl,
-          created_at: new Date().toISOString()
+                    this.user = user;
+                    this.showToast('Account created! Check your email to confirm.', 'success');
+                    
+                    setTimeout(() => {
+                        document.getElementById('reg-email').value = '';
+                        document.getElementById('reg-password').value = '';
+                        document.getElementById('reg-confirm').value = '';
+                        this.switchTab('signin');
+                    }, 2000);
+                } catch (error) {
+                    this.showToast(error.message || 'Registration failed', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Create Account';
+                }
+            },
+
+            // Auth: Forgot password
+            showForgotPassword() {
+                this.switchTab('otp');
+            },
+
+            async handleOTP(e) {
+                e.preventDefault();
+                try {
+                    const email = document.getElementById('otp-email').value;
+                    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}?type=recovery`
+                    });
+                    
+                    if (error) throw error;
+                    this.showToast('Password reset link sent to your email', 'success');
+                    setTimeout(() => this.switchTab('signin'), 2000);
+                } catch (error) {
+                    this.showToast(error.message || 'Failed to send reset link', 'error');
+                }
+            },
+
+            // Dashboard: Switch module
+            switchModule(module) {
+                // Hide all modules
+                document.querySelectorAll('[id^="module-"]').forEach(el => {
+                    el.classList.add('hidden-app');
+                });
+
+                // Show selected module
+                document.getElementById(`module-${module}`).classList.remove('hidden-app');
+
+                // Update nav button states
+                document.querySelectorAll('nav.bottom-bar button').forEach(btn => {
+                    if (btn.getAttribute('data-module') === module) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                this.currentModule = module;
+            },
+
+            // Load user profile info
+            async loadUserProfile() {
+                if (!this.user) return;
+
+                try {
+                    const { data, error } = await this.supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', this.user.id)
+                        .single();
+
+                    if (data) {
+                        const initial = (data.company_name || this.user.email)[0].toUpperCase();
+                        document.getElementById('profile-initial').textContent = initial;
+                        document.getElementById('profile-initial-lg').textContent = initial;
+                        document.getElementById('profile-name').textContent = data.company_name || 'User';
+                        document.getElementById('profile-email').textContent = this.user.email;
+                    }
+                } catch (error) {
+                    console.log('Profile load:', error);
+                }
+            },
+
+            // Logout
+            async logout() {
+                try {
+                    const { error } = await this.supabase.auth.signOut();
+                    if (error) throw error;
+
+                    this.user = null;
+                    localStorage.removeItem('userRole');
+                    this.showToast('Signed out successfully', 'success');
+                    
+                    setTimeout(() => {
+                        this.role = null;
+                        this.showRBAC();
+                    }, 1000);
+                } catch (error) {
+                    this.showToast('Logout failed', 'error');
+                }
+            },
+
+            // Utility: Toggle password visibility
+            togglePassword(fieldId) {
+                const field = document.getElementById(fieldId);
+                const icon = event.target;
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    field.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            },
+
+            // Toast notifications
+            showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 5000);
+            }
         };
-        const { error: dbErr } = await supabase.from('companies').insert([companyRow]);
-        if (dbErr) {
-          console.warn('company insert failed', dbErr);
-          // still proceed but notify
-          showToast('Account created but failed to save company details: ' + dbErr.message);
-        } else {
-          showToast('Account created. Check email to verify (if required).', true);
-        }
 
-        // show sign in tab so user can sign in
-        switchTab('signin');
-      } catch (err) {
-        console.error(err);
-        showToast(err?.message || 'Signup failed');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Create Company Account';
-      }
-    }
-
-    async function handleOTP(e) {
-      e?.preventDefault?.();
-      const email = el('otp-email')?.value?.trim();
-      const btn = el('btn-otp');
-      if (!email) return showToast('Enter registered email');
-
-      btn.disabled = true; btn.textContent = 'Sending...';
-      try {
-        if (!supabase || isDemoMode) {
-          await new Promise(r=>setTimeout(r,700));
-          showToast('Recovery link sent (demo)', true);
-          return;
-        }
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) throw error;
-        showToast('Recovery email sent. Check your inbox.', true);
-        switchTab('signin');
-      } catch (err) {
-        console.error(err);
-        showToast(err?.message || 'Failed to send recovery email');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Send Reset Link';
-      }
-    }
-
-    /* ---------- NAV / DASHBOARD ---------- */
-    async function showDashboardOrRedirect() {
-      // try redirect to home.html if exists
-      if (await resourceExists('home.html')) {
-        window.location.href = 'home.html';
-        return;
-      }
-
-      // fallback to in-page dashboard
-      el('dashboard-container')?.classList.remove('hidden-app');
-      el('dashboard-container')?.setAttribute('aria-hidden','false');
-      el('auth-container')?.classList.add('hidden-app');
-      el('rbac-modal')?.classList.add('hidden-app');
-
-      personalizeDashboard();
-    }
-
-    function personalizeDashboard() {
-      const email = localStorage.getItem('bizlink_email') || (currentUser && currentUser.email) || '';
-      if (email) el('user-avatar').textContent = email.charAt(0).toUpperCase();
-      const role = localStorage.getItem('bizlink_role') || 'User';
-      el('welcome-msg').textContent = `Welcome ${role[0].toUpperCase() + role.slice(1)} — Explore opportunities`;
-    }
-
-    function logout() {
-      // sign out
-      if (!confirm('Are you sure you want to sign out?')) return;
-      (async ()=>{
-        try { if (supabase && !isDemoMode) await supabase.auth.signOut(); } catch(e){ console.warn(e); }
-        localStorage.removeItem('bizlink_auth_token');
-        localStorage.removeItem('bizlink_email');
-        localStorage.removeItem('bizlink_role');
-        currentUser = null;
-
-        // show RBAC again
-        el('dashboard-container')?.classList.add('hidden-app');
-        el('rbac-modal')?.classList.remove('hidden-app');
-        el('rbac-modal')?.setAttribute('aria-hidden','false');
-
-        // reset simple UI states
-        switchTab('signin');
-      })();
-    }
-
-    function navClick(name) {
-      // demo nav handler
-      document.querySelectorAll('nav.bottombar button').forEach(b => b.classList.remove('active'));
-      const btn = el('nav-' + name);
-      if (btn) btn.classList.add('active');
-      showToast('Opened: ' + name, true);
-    }
-
-    /* ---------- boot ---------- */
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+        // Start app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
 </body>
 </html>
