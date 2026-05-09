@@ -46,10 +46,9 @@
             background-color: #050505;
             color: #ffffff;
             overflow-x: hidden;
-            /* Premium textured background */
             background-image: 
                 radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%), 
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#f5c000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f5c000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
         .hidden-app { display: none !important; }
@@ -104,7 +103,7 @@
         }
         @keyframes moveS {
             0% { transform: translateX(0); }
-            40%, 60% { transform: translateX(-60px); } /* Adjust based on 'tech' width */
+            40%, 60% { transform: translateX(-60px); }
             100% { transform: translateX(0); }
         }
 
@@ -170,6 +169,23 @@
         .img-preview {
             width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem; display: none;
         }
+
+        /* Module Loading */
+        .module-loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .module-content {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
     </style>
 </head>
 <body>
@@ -232,10 +248,10 @@
                 <div class="relative z-10 my-12">
                     <h2 class="text-2xl font-bold text-white mb-6 leading-tight">The Ultimate B2B<br>Networking Hub.</h2>
                     <ul class="space-y-4 text-sm text-gray-400">
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-box text-gold text-xs"></i></div> Unlimited Products</li>
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-play text-bizblue text-xs"></i></div> Global Reel-Stream</li>
-                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-video text-gold text-xs"></i></div> Live Video Deals</li>
-                        <li class="flex items-center premium-feature-item"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-robot text-bizblue text-xs"></i></div> AI Chat Assistant</li>
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-box text-gold text-xs"></i></div> Unlimited Product Listings</li>
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-play text-bizblue text-xs"></i></div> Global Business Network</li>
+                        <li class="flex items-center"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-video text-gold text-xs"></i></div> Live Video Showcases</li>
+                        <li class="flex items-center premium-feature-item"><div class="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center mr-3"><i class="fa-solid fa-robot text-bizblue text-xs"></i></div> AI-Powered Recommendations</li>
                     </ul>
                 </div>
                 
@@ -265,7 +281,7 @@
 
                 <!-- Sign In Form -->
                 <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-5">
-                    <button type="button" onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 font-semibold p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 transition shadow-sm">
+                    <button type="button" onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 font-semibold p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
                         <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                         Continue with Google
                     </button>
@@ -283,7 +299,7 @@
                     <div>
                         <div class="flex justify-between items-end mb-1.5">
                             <label class="block text-xs font-medium text-gray-400">Password</label>
-                            <a href="#" onclick="showForgotPassword()" class="text-[11px] text-gold hover:underline">Forgot password?</a>
+                            <a href="#" onclick="showForgotPassword(event)" class="text-[11px] text-gold hover:underline">Forgot password?</a>
                         </div>
                         <div class="relative">
                             <input type="password" id="login-password" class="input-g pr-10" required placeholder="••••••••">
@@ -311,6 +327,7 @@
                         <div>
                             <label class="block text-xs text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
                             <select id="reg-country" class="input-g" required>
+                                <option value="">Select Country</option>
                                 <option value="UAE">United Arab Emirates</option>
                                 <option value="USA">United States</option>
                                 <option value="IND">India</option>
@@ -324,7 +341,7 @@
                         <!-- CEO Image -->
                         <div class="relative">
                             <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
-                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-28 flex flex-col justify-center">
+                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-24">
                                 <div id="icon-ceo">
                                     <i class="fa-solid fa-user-tie text-2xl text-gray-500 mb-1"></i>
                                     <div class="text-[10px] text-gray-400">CEO Photo</div>
@@ -335,7 +352,7 @@
                         <!-- Company Logo -->
                         <div class="relative">
                             <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
-                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-28 flex flex-col justify-center">
+                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-gold hover:bg-dark-700 transition cursor-pointer relative overflow-hidden h-24">
                                 <div id="icon-logo">
                                     <i class="fa-solid fa-building text-2xl text-gray-500 mb-1"></i>
                                     <div class="text-[10px] text-gray-400">Company Logo</div>
@@ -398,29 +415,29 @@
         </div>
     </div>
 
-    <!-- 4. POST-LOGIN DASHBOARD (Simulated home.html & bottom bar) -->
+    <!-- 4. POST-LOGIN DASHBOARD -->
     <div id="dashboard-container" class="hidden-app h-screen flex flex-col bg-dark-900">
         <!-- Top Bar -->
         <header class="bg-dark-800 border-b border-gray-800 p-4 flex justify-between items-center z-20 shadow-md">
             <div class="text-xl font-bold text-bizblue animate-pulse-glow">Bizlink</div>
             <div class="flex items-center space-x-4">
-                <button class="text-gray-400 hover:text-white relative">
+                <button class="text-gray-400 hover:text-white relative" onclick="showNotifications()">
                     <i class="fa-solid fa-bell text-lg"></i>
                     <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-dark-800"></span>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer" onclick="logout()">
+                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-black font-bold cursor-pointer" onclick="logout()" title="Logout">
                     C
                 </div>
             </div>
         </header>
         
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
             <div class="max-w-2xl mx-auto space-y-6 pb-20">
                 <!-- Search -->
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500"></i>
-                    <input type="text" class="w-full bg-dark-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none" placeholder="Search products, reels, profiles...">
+                    <input type="text" class="w-full bg-dark-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none" placeholder="Search products, companies...">
                 </div>
 
                 <!-- Feed Content Sim -->
@@ -446,32 +463,32 @@
                 </div>
 
                 <div class="text-center text-xs text-gray-500 mt-10">
-                    <p>Welcome to the main hub. Actual modules (reels.html, network.html) will load here.</p>
+                    <p>Click navigation buttons below to load modules.</p>
                 </div>
             </div>
         </main>
 
         <!-- Fixed Bottom Bar -->
         <nav class="fixed bottom-0 w-full bg-[#111111] border-t border-gray-800 flex justify-around p-2 z-30 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
-            <button class="flex flex-col items-center p-2 text-gold">
+            <button onclick="loadModule('home.html', 'Home')" class="flex flex-col items-center p-2 text-gold nav-btn" data-module="home">
                 <i class="fa-solid fa-house text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Home</span>
             </button>
-            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+            <button onclick="loadModule('feed.html', 'Reels')" class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition nav-btn" data-module="feed">
                 <i class="fa-solid fa-play text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Reels</span>
             </button>
-            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition -mt-5">
+            <button onclick="loadModule('add.html', 'Add Product')" class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition -mt-5 nav-btn" data-module="add">
                 <div class="bg-bizblue text-white w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,102,255,0.5)]">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </div>
                 <span class="text-[10px] font-medium mt-1">Add</span>
             </button>
-            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+            <button onclick="loadModule('network.html', 'Products')" class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition nav-btn" data-module="network">
                 <i class="fa-solid fa-box-open text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Products</span>
             </button>
-            <button class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition">
+            <button onclick="loadModule('profile.html', 'Profile')" class="flex flex-col items-center p-2 text-gray-500 hover:text-gray-300 transition nav-btn" data-module="profile">
                 <i class="fa-solid fa-user text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Profile</span>
             </button>
@@ -481,15 +498,15 @@
     <!-- Application Logic & Supabase Integration -->
     <script>
         // ==========================================
-        // 1. SUPABASE CONFIGURATION (REPLACE THESE)
+        // 1. SUPABASE CONFIGURATION
         // ==========================================
         const SUPABASE_URL = 'https://vfyyvvbntdkxuvbxjiko.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bUq7AQAueXJOxlaT96Zr3F-0KsyOLplNEZh_sOLk';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXl2dmJudGRreHV2YnhqaWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMzUwNTgsImV4cCI6MjA5MzgxMTA1OH0.LF4bU';
         
         let supabase;
         let isDemoMode = false;
 
-        // Initialize Supabase. Fallback to demo mode if keys are untouched.
+        // Initialize Supabase
         try {
             if(SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
                 console.warn("Supabase keys not set. Running in Demo Mode.");
@@ -506,7 +523,6 @@
         // 2. BOOTSTRAP & UI ANIMATIONS
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Check session on load
             checkSession();
 
             // Splash Screen Animation Sequence
@@ -527,14 +543,7 @@
             localStorage.setItem('bizlink_role', role);
             
             document.getElementById('rbac-modal').classList.add('hidden-app');
-            
-            if (role === 'salesman' || role === 'viewer') {
-                showToast("Redirecting to Salesman Portal...", false);
-                // window.location.href = '2index.html'; // Actual redirect
-                document.getElementById('auth-container').classList.remove('hidden-app'); // For demo
-            } else {
-                document.getElementById('auth-container').classList.remove('hidden-app');
-            }
+            document.getElementById('auth-container').classList.remove('hidden-app');
         }
 
         // ==========================================
@@ -578,7 +587,8 @@
             }
         }
 
-        function showForgotPassword() {
+        function showForgotPassword(e) {
+            e.preventDefault();
             document.getElementById('form-signin').classList.add('hidden');
             document.getElementById('form-signup').classList.add('hidden');
             document.getElementById('form-forgot').classList.remove('hidden');
@@ -614,7 +624,68 @@
         }
 
         // ==========================================
-        // 4. SUPABASE AUTHENTICATION & DATABASE LOGIC
+        // 4. MODULE LOADING SYSTEM
+        // ==========================================
+        async function loadModule(modulePath, title) {
+            try {
+                // Highlight active button
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('text-gold');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-300');
+                });
+                event.target.closest('.nav-btn').classList.add('text-gold');
+                event.target.closest('.nav-btn').classList.remove('text-gray-500', 'hover:text-gray-300');
+
+                // Show loading state
+                const mainContent = document.getElementById('main-content');
+                mainContent.innerHTML = '<div class="flex items-center justify-center h-full"><div class="text-center"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-gold mb-4"></i><p class="text-gray-400">Loading ' + title + '...</p></div></div>';
+
+                // Fetch module
+                const response = await fetch(modulePath);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${modulePath}`);
+                }
+
+                const html = await response.text();
+                
+                // Parse HTML and extract relevant content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Get body content
+                const content = doc.body.innerHTML;
+                
+                // Load any stylesheets from the module
+                doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                    if (!document.querySelector(`link[href="${link.href}"]`)) {
+                        document.head.appendChild(link.cloneNode());
+                    }
+                });
+
+                // Inject content
+                mainContent.innerHTML = content;
+                
+                // Re-run any scripts from the module
+                doc.querySelectorAll('script').forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
+
+                console.log(`Module loaded: ${modulePath}`);
+            } catch (error) {
+                console.error('Module load error:', error);
+                document.getElementById('main-content').innerHTML = 
+                    '<div class="flex items-center justify-center h-full"><div class="text-center"><i class="fa-solid fa-exclamation-triangle text-3xl text-red-500 mb-4"></i><p class="text-gray-400">Failed to load module</p><p class="text-xs text-gray-500 mt-2">' + error.message + '</p></div></div>';
+            }
+        }
+
+        // ==========================================
+        // 5. SUPABASE AUTHENTICATION & DATABASE LOGIC
         // ==========================================
         
         async function checkSession() {
@@ -623,9 +694,13 @@
                 return;
             }
 
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                showDashboard();
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    showDashboard();
+                }
+            } catch(e) {
+                console.error("Session check error:", e);
             }
         }
 
@@ -640,50 +715,63 @@
 
             if (isDemoMode) {
                 setTimeout(() => {
-                    localStorage.setItem('bizlink_auth_token', 'demo_token');
+                    localStorage.setItem('bizlink_auth_token', 'demo_token_' + Date.now());
+                    localStorage.setItem('bizlink_user_email', email);
                     showToast("Login Successful!", false);
                     showDashboard();
                 }, 1500);
                 return;
             }
 
-            // Real Supabase Call
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: pass,
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: pass,
+                });
 
-            if (error) {
-                showToast(error.message);
+                if (error) {
+                    showToast(error.message);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>';
+                } else {
+                    localStorage.setItem('bizlink_auth_token', data.session.access_token);
+                    showDashboard();
+                }
+            } catch(e) {
+                showToast("Authentication error: " + e.message);
                 btn.disabled = false;
                 btn.innerHTML = 'Sign In <i class="fa-solid fa-right-to-bracket ml-2"></i>';
-            } else {
-                showDashboard();
             }
         }
 
         async function handleGoogleLogin() {
             if (isDemoMode) {
                 showToast("Google OAuth simulated in Demo Mode.", false);
-                setTimeout(showDashboard, 1000);
+                setTimeout(() => {
+                    localStorage.setItem('bizlink_auth_token', 'demo_token_google');
+                    showDashboard();
+                }, 1000);
                 return;
             }
 
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/index.html'
-                }
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/index.html'
+                    }
+                });
 
-            if (error) showToast(error.message);
+                if (error) showToast(error.message);
+            } catch(e) {
+                showToast("OAuth error: " + e.message);
+            }
         }
 
         async function handleSignup(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
             
-            // Gather Data
             const company = document.getElementById('reg-company').value;
             const ceo = document.getElementById('reg-ceo').value;
             const country = document.getElementById('reg-country').value;
@@ -691,10 +779,10 @@
             const pass = document.getElementById('reg-password').value;
             const conf = document.getElementById('reg-confirm').value;
 
-            // Files (For real upload you'd send these to supabase.storage)
             const ceoFile = document.getElementById('file-ceo').files[0];
             const logoFile = document.getElementById('file-logo').files[0];
 
+            if (!company || !ceo || !country) return showToast("Please fill all company fields.");
             if (pass !== conf) return showToast("Passwords do not match.");
             if (!ceoFile || !logoFile) return showToast("Please upload both CEO and Company images.");
 
@@ -707,54 +795,60 @@
                     switchTab('signin');
                     btn.disabled = false;
                     btn.innerHTML = 'Create Company Account';
+                    // Clear form
+                    document.getElementById('form-signup').reset();
                 }, 2000);
                 return;
             }
 
-            // 1. REAL SUPABASE AUTH SIGNUP
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: email,
-                password: pass,
-                options: {
-                    data: { full_name: ceo }
-                }
-            });
+            try {
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: pass,
+                    options: {
+                        data: { full_name: ceo }
+                    }
+                });
 
-            if (authError) {
-                showToast(authError.message);
+                if (authError) {
+                    showToast(authError.message);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Create Company Account';
+                    return;
+                }
+
+                const mockLogoUrl = "https://via.placeholder.com/150?text=Logo";
+                const mockCeoUrl = "https://via.placeholder.com/150?text=CEO";
+
+                const { error: dbError } = await supabase
+                    .from('companies')
+                    .insert([
+                        {
+                            owner_id: authData.user.id,
+                            company_name: company,
+                            ceo_name: ceo,
+                            country: country,
+                            email: email,
+                            logo_url: mockLogoUrl,
+                            ceo_image_url: mockCeoUrl
+                        }
+                    ]);
+
+                if (dbError) {
+                    showToast("Auth success, but failed to save company details: " + dbError.message);
+                } else {
+                    showToast("Account created successfully! Check your email to verify.", false);
+                    switchTab('signin');
+                    document.getElementById('form-signup').reset();
+                }
+
                 btn.disabled = false;
                 btn.innerHTML = 'Create Company Account';
-                return;
+            } catch(e) {
+                showToast("Signup error: " + e.message);
+                btn.disabled = false;
+                btn.innerHTML = 'Create Company Account';
             }
-
-            // Note: In production, upload files to Supabase Storage here, get URLs, then insert DB.
-            const mockLogoUrl = "https://example.com/logo.png";
-            const mockCeoUrl = "https://example.com/ceo.png";
-
-            // 2. REAL SUPABASE DATABASE INSERT
-            const { error: dbError } = await supabase
-                .from('companies')
-                .insert([
-                    {
-                        owner_id: authData.user.id,
-                        company_name: company,
-                        ceo_name: ceo,
-                        country: country,
-                        email: email,
-                        logo_url: mockLogoUrl,
-                        ceo_image_url: mockCeoUrl
-                    }
-                ]);
-
-            if (dbError) {
-                showToast("Auth success, but failed to save company details: " + dbError.message);
-            } else {
-                showToast("Account created successfully! Check your email to verify.", false);
-                switchTab('signin');
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = 'Create Company Account';
         }
 
         async function handleOTP(e) {
@@ -770,46 +864,66 @@
                     showToast("Recovery link sent!", false);
                     btn.disabled = false;
                     btn.innerHTML = 'Send Reset Link';
+                    switchTab('signin');
                 }, 1000);
                 return;
             }
 
-            const { data, error } = await supabase.auth.resetPasswordForEmail(email);
-            if (error) showToast(error.message);
-            else showToast("Recovery email sent. Check your inbox.", false);
+            try {
+                const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+                if (error) showToast(error.message);
+                else showToast("Recovery email sent. Check your inbox.", false);
+            } catch(e) {
+                showToast("Reset error: " + e.message);
+            }
             
             btn.disabled = false;
             btn.innerHTML = 'Send Reset Link';
         }
 
         // ==========================================
-        // 5. NAVIGATION / STATE TRANSITIONS
+        // 6. NAVIGATION & NOTIFICATIONS
         // ==========================================
+        function showNotifications() {
+            showToast("You have 3 new messages", false);
+        }
+
         function showDashboard() {
             document.getElementById('splash').classList.add('hidden-app');
             document.getElementById('rbac-modal').classList.add('hidden-app');
             document.getElementById('auth-container').classList.add('hidden-app');
             
-            // Show Dashboard (Simulated home.html)
             const dashboard = document.getElementById('dashboard-container');
             dashboard.classList.remove('hidden-app');
             dashboard.style.opacity = '0';
             
-            // Fade in effect
             setTimeout(() => {
                 dashboard.style.transition = 'opacity 0.5s ease';
                 dashboard.style.opacity = '1';
             }, 50);
+
+            // Load home module by default
+            setTimeout(() => {
+                loadModule('home.html', 'Home');
+            }, 300);
         }
 
         async function logout() {
-            if(!isDemoMode) await supabase.auth.signOut();
+            if(!isDemoMode) {
+                try {
+                    await supabase.auth.signOut();
+                } catch(e) {
+                    console.error("Logout error:", e);
+                }
+            }
             localStorage.removeItem('bizlink_auth_token');
             localStorage.removeItem('bizlink_role');
+            localStorage.removeItem('bizlink_user_email');
             
             document.getElementById('dashboard-container').classList.add('hidden-app');
             document.getElementById('rbac-modal').classList.remove('hidden-app');
             switchTab('signin');
+            document.getElementById('form-signin').reset();
         }
     </script>
 </body>
