@@ -110,20 +110,28 @@
         .btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 192, 0, 0.4); }
         .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
+        .btn-ghost {
+            background: transparent; color: #f5c000; border: 1px solid #f5c000; font-weight: 600;
+            padding: 0.85rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-ghost:hover:not(:disabled) { background: rgba(245, 192, 0, 0.1); }
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f5c000; }
 
-        /* Dashboard Logo Animation */
-        #header-logo-container { position: relative; overflow: hidden; width: 250px; height: 40px; display: flex; align-items: center; cursor: pointer; }
-        #logo-bizlink { position: absolute; left: 0; transition: opacity 0.3s, transform 0.3s; }
-        #logo-golden { position: absolute; left: 0; opacity: 0; transform: translateX(100%); white-space: nowrap; }
-
-        /* Premium Particles Canvas */
+        /* Premium Canvas */
         #premium-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; display: none; }
         body.theme-premium #premium-canvas { display: block; }
         body.theme-premium { background-color: #0f0a00; }
         body.theme-premium .bg-dark-800 { background-color: rgba(15, 10, 0, 0.9); border-color: #3a2b00; }
+        
+        .golden-avatar-bg {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5c000' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
+            background-size: 50%; background-position: center; background-repeat: no-repeat;
+            background-color: #1a1a1a;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +155,6 @@
                 setTimeout(() => { 
                     splash.style.display = 'none'; 
                     splash.classList.add('hidden-app'); 
-                    // If dashboard isn't visible, ensure Auth/RBAC logic takes over
                     if (document.getElementById('dashboard-container').classList.contains('hidden-app') &&
                         document.getElementById('auth-container').classList.contains('hidden-app')) {
                         document.getElementById('rbac-modal').classList.remove('hidden-app');
@@ -160,12 +167,12 @@
     <!-- PREMIUM CANVAS (Feature #106) -->
     <canvas id="premium-canvas"></canvas>
 
-    <!-- POPUP NOTIFICATION SIMULATOR (Feature #96) -->
+    <!-- POPUP NOTIFICATION SIMULATOR -->
     <div id="top-popup" class="hidden-app fixed top-4 left-1/2 transform -translate-x-1/2 bg-dark-800 border border-gold/50 rounded-full py-2 px-4 shadow-[0_5px_20px_rgba(245,192,0,0.3)] z-[9999] flex items-center space-x-3 cursor-pointer">
         <div class="w-8 h-8 rounded-full bg-bizblue flex items-center justify-center text-white text-xs"><i class="fa-solid fa-bell"></i></div>
         <div>
-            <h4 class="text-xs font-bold text-white leading-tight">New Message</h4>
-            <p class="text-[10px] text-gray-400 leading-tight">Golden's TechS just messaged you.</p>
+            <h4 class="text-xs font-bold text-white leading-tight">System Notice</h4>
+            <p class="text-[10px] text-gray-400 leading-tight">Welcome to Golden's Business Hub.</p>
         </div>
     </div>
 
@@ -195,7 +202,7 @@
                     </div>
                 </label>
             </div>
-            <button type="button" onclick="routeFromRBAC()" class="btn-gold w-full mt-6">
+            <button id="btn-rbac-continue" type="button" class="btn-gold w-full mt-6">
                 Continue <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </div>
@@ -203,10 +210,15 @@
 
     <!-- 3. MAIN AUTHENTICATION PANEL -->
     <div id="auth-container" class="hidden-app min-h-screen flex items-center justify-center p-4 z-10 relative">
-        <div class="w-full max-w-5xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.9)] overflow-hidden border border-gray-800">
+        <div class="w-full max-w-5xl grid md:grid-cols-2 bg-dark-800 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.9)] overflow-hidden border border-gray-800 relative">
             
+            <!-- Back to Role Select Button -->
+            <button id="btn-back-role" class="absolute top-4 left-4 z-50 text-gray-400 hover:text-gold text-sm font-semibold transition flex items-center">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Change Role
+            </button>
+
             <!-- Left Side Branding -->
-            <div class="p-8 lg:p-12 bg-[#050505] flex flex-col justify-between relative overflow-hidden hidden md:flex">
+            <div class="p-8 lg:p-12 bg-[#050505] flex flex-col justify-between relative overflow-hidden hidden md:flex pt-16">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bizblue via-gold to-bizblue"></div>
                 <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-bizblue/10 rounded-full blur-[80px]"></div>
                 <div class="relative z-10">
@@ -228,14 +240,14 @@
             </div>
 
             <!-- Right Side Forms -->
-            <div class="p-6 lg:p-10 relative bg-[#0a0a0a]">
+            <div class="p-6 lg:p-10 relative bg-[#0a0a0a] pt-16 md:pt-10">
                 <div class="flex space-x-8 mb-8 border-b border-gray-800 pb-0 relative">
                     <button type="button" onclick="switchTab('signin')" id="tab-signin" class="text-gold font-bold pb-3 px-1 relative text-sm tracking-wide transition">
                         SIGN IN
                         <div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t shadow-[0_0_10px_#f5c000]"></div>
                     </button>
                     <button type="button" onclick="switchTab('signup')" id="tab-signup" class="text-gray-500 hover:text-gray-300 font-bold pb-3 px-1 relative transition text-sm tracking-wide">
-                        REGISTER COMPANY
+                        REGISTER
                         <div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>
                     </button>
                 </div>
@@ -245,8 +257,8 @@
                 </div>
 
                 <!-- Sign In Form -->
-                <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-4">
-                    <button type="button" onclick="handleGoogleLogin()" class="w-full bg-white text-gray-900 font-bold p-3 rounded-lg flex items-center justify-center hover:bg-gray-200 transition shadow">
+                <form id="form-signin" class="space-y-4">
+                    <button id="btn-google-login" type="button" class="w-full bg-white text-gray-900 font-bold p-3 rounded-lg flex items-center justify-center hover:bg-gray-200 transition shadow">
                         <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                         Continue with Google
                     </button>
@@ -272,61 +284,19 @@
                         </div>
                     </div>
                     
-                    <div class="flex items-center mt-2">
-                        <input type="checkbox" id="remember-me" class="w-4 h-4 bg-dark-900 border-gray-700 rounded text-gold focus:ring-gold accent-gold" checked>
-                        <label for="remember-me" class="ml-2 text-xs text-gray-400 cursor-pointer">Remember my device</label>
-                    </div>
-                    
                     <button type="submit" id="btn-login" class="btn-gold w-full mt-6">
                         Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>
                     </button>
                 </form>
 
                 <!-- Sign Up Form -->
-                <form id="form-signup" onsubmit="handleSignup(event)" class="hidden space-y-4 max-h-[60vh] overflow-y-auto pr-3 custom-scrollbar">
+                <form id="form-signup" class="hidden space-y-4 max-h-[60vh] overflow-y-auto pr-3 custom-scrollbar">
+                    
+                    <!-- Core Email/Pass (Always required) -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Company Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="reg-company" class="input-g" required placeholder="Golden's TechS">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">CEO Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="reg-ceo" class="input-g" required placeholder="John Doe">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Country <span class="text-red-500">*</span></label>
-                            <select id="reg-country" class="input-g" required>
-                                <option value="UAE">United Arab Emirates</option>
-                                <option value="USA">United States</option>
-                                <option value="IND">India</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- File Upload Previews (Fixed functionality) -->
-                    <div class="grid grid-cols-2 gap-4 mt-2">
-                        <div class="relative">
-                            <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
-                            <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
-                                <div id="icon-ceo"><i class="fa-solid fa-user-tie text-xl text-gray-500 mb-1"></i><div class="text-[10px] text-gray-400">CEO Photo</div></div>
-                                <img id="preview-ceo" class="absolute inset-0 w-full h-full object-cover hidden" alt="CEO">
-                            </label>
-                        </div>
-                        <div class="relative">
-                            <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
-                            <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative">
-                                <div id="icon-logo"><i class="fa-solid fa-building text-xl text-gray-500 mb-1"></i><div class="text-[10px] text-gray-400">Company Logo</div></div>
-                                <img id="preview-logo" class="absolute inset-0 w-full h-full object-cover bg-white hidden" alt="Logo">
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Work Email <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Account Email <span class="text-red-500">*</span></label>
                         <input type="email" id="reg-email" class="input-g" required placeholder="contact@company.com">
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 mb-1">Password <span class="text-red-500">*</span></label>
@@ -342,37 +312,78 @@
                             <input type="password" id="reg-confirm" class="input-g" required placeholder="••••••••">
                         </div>
                     </div>
+
+                    <!-- Extended Details (Optional for Quick Start) -->
+                    <div id="extended-signup-fields" class="space-y-4 border-t border-gray-800 pt-4 mt-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gold font-bold uppercase tracking-widest">Company Details</span>
+                            <span class="text-[10px] text-gray-500">Optional for Quick Start</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Company Name</label>
+                            <input type="text" id="reg-company" class="input-g" placeholder="e.g. Golden's TechS">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">CEO Name</label>
+                                <input type="text" id="reg-ceo" class="input-g" placeholder="John Doe">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">Country</label>
+                                <select id="reg-country" class="input-g">
+                                    <option value="Global">Global</option>
+                                    <option value="UAE">United Arab Emirates</option>
+                                    <option value="USA">United States</option>
+                                    <option value="IND">India</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div class="relative">
+                                <input type="file" id="file-ceo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-ceo', 'icon-ceo')">
+                                <label for="file-ceo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative golden-avatar-bg">
+                                    <div id="icon-ceo" class="bg-black/50 p-1 rounded backdrop-blur-sm"><i class="fa-solid fa-user-tie text-xl text-white mb-1"></i><div class="text-[10px] text-white">CEO Photo</div></div>
+                                    <img id="preview-ceo" class="absolute inset-0 w-full h-full object-cover hidden" alt="CEO">
+                                </label>
+                            </div>
+                            <div class="relative">
+                                <input type="file" id="file-logo" accept="image/*" class="hidden" onchange="previewImage(this, 'preview-logo', 'icon-logo')">
+                                <label for="file-logo" class="block border border-dashed border-gray-600 rounded-lg p-3 text-center hover:border-bizblue hover:bg-dark-800 transition cursor-pointer h-24 flex flex-col justify-center overflow-hidden relative golden-avatar-bg">
+                                    <div id="icon-logo" class="bg-black/50 p-1 rounded backdrop-blur-sm"><i class="fa-solid fa-building text-xl text-white mb-1"></i><div class="text-[10px] text-white">Company Logo</div></div>
+                                    <img id="preview-logo" class="absolute inset-0 w-full h-full object-cover hidden" alt="Logo">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="pt-2 pb-2 space-y-2">
                         <label class="flex items-start cursor-pointer">
                             <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
-                            <span class="text-[11px] text-gray-400 leading-tight">I agree to the <a href="#" class="text-bizblue hover:underline">Terms of Service</a> & <a href="#" class="text-bizblue hover:underline">Privacy Policy</a>.</span>
-                        </label>
-                        <label class="flex items-start cursor-pointer">
-                            <input type="checkbox" required class="mt-0.5 mr-2 bg-dark-900 border-gray-700 rounded accent-gold">
-                            <span class="text-[11px] text-gray-400 leading-tight">I consent to data processing (GDPR Compliance).</span>
+                            <span class="text-[11px] text-gray-400 leading-tight">I agree to the <a href="#" class="text-bizblue hover:underline">Terms of Service</a> & GDPR Policy.</span>
                         </label>
                     </div>
 
+                    <!-- Submit Actions -->
                     <button type="submit" id="btn-signup" class="btn-gold w-full mt-4">
-                        Create Company Account
+                        Register Full Profile
+                    </button>
+                    <button type="button" id="btn-quick-signup" class="btn-ghost w-full mt-3">
+                        <i class="fa-solid fa-bolt mr-2"></i> Skip for now (Quick Register)
                     </button>
                 </form>
 
                 <!-- Forgot Password -->
-                <form id="form-forgot" onsubmit="handleOTP(event)" class="hidden space-y-4">
+                <form id="form-forgot" class="hidden space-y-4">
                     <h3 class="text-2xl font-bold text-white mb-1">Reset Password</h3>
-                    <p class="text-xs text-gray-400 mb-6">Enter your registered email to receive a secure recovery link.</p>
-                    
+                    <p class="text-xs text-gray-400 mb-6">Enter your email to receive a recovery link.</p>
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Email Address</label>
                         <input type="email" id="otp-email" class="input-g" required placeholder="name@company.com">
                     </div>
-                    
                     <button type="submit" id="btn-otp" class="btn-gold w-full mt-4">Send Reset Link</button>
                     <button type="button" onclick="switchTab('signin')" class="w-full mt-4 text-xs text-gray-500 hover:text-white transition">Back to Sign In</button>
                 </form>
-
             </div>
         </div>
     </div>
@@ -406,13 +417,11 @@
         <main class="flex-1 overflow-y-auto p-4 custom-scrollbar relative z-20">
             <div class="max-w-4xl mx-auto space-y-6 pb-24">
                 
-                <!-- Search -->
                 <div class="relative group">
                     <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-500 group-focus-within:text-gold transition"></i>
                     <input type="text" class="w-full bg-[#111] border border-gray-800 rounded-full py-3 pl-12 pr-4 text-sm text-white focus:border-gold outline-none shadow-sm transition" placeholder="Search products, companies, reels...">
                 </div>
 
-                <!-- Feed Area -->
                 <div class="bg-dark-800/90 backdrop-blur-sm rounded-xl p-5 border border-gray-800 shadow-xl">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-fire text-orange-500 mr-2"></i> Trending Products</h3>
@@ -420,7 +429,6 @@
                     </div>
                     
                     <div class="flex space-x-4 overflow-x-auto custom-scrollbar pb-2">
-                        <!-- Mock Card 1 -->
                         <div class="min-w-[160px] bg-[#1a1a1a] border border-gray-700 rounded-xl overflow-hidden hover:border-gold transition">
                             <div class="h-32 bg-[url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=200')] bg-cover bg-center relative">
                                 <span class="absolute top-2 left-2 bg-gold text-black text-[9px] font-bold px-1.5 py-0.5 rounded">NEW</span>
@@ -433,7 +441,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Mock Card 2 -->
                         <div class="min-w-[160px] bg-[#1a1a1a] border border-gray-700 rounded-xl overflow-hidden hover:border-gold transition">
                             <div class="h-32 bg-[url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=200')] bg-cover bg-center"></div>
                             <div class="p-3">
@@ -463,7 +470,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- APPLICATION LOGIC & DATABASE INTEGRATION   -->
+    <!-- APPLICATION LOGIC & STRICT EVENT LISTENERS -->
     <!-- ========================================== -->
     <script>
         // --- 1. SUPABASE CONNECTION ---
@@ -480,11 +487,12 @@
                 });
                 isMockMode = false;
             } catch(e) { console.error("Supabase Init Error:", e); }
-        } else {
-            console.warn("MOCK MODE ACTIVE: Please provide Supabase credentials to enable database connectivity.");
         }
 
-        // --- 2. ROUTING LOGIC ---
+        // Golden Avatar Fallback Generator
+        const defaultGoldenAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5c000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
+
+        // --- 2. BOOTSTRAP ROUTING ---
         function checkAuthAndRoute() {
             if (!isMockMode && supabase) {
                 supabase.auth.getSession().then(({ data }) => {
@@ -494,35 +502,177 @@
                     document.getElementById('rbac-modal').classList.remove('hidden-app');
                 });
             } else {
-                // Mock Routing
                 if (localStorage.getItem('bizlink_mock_session') === 'active') showDashboard();
                 else document.getElementById('rbac-modal').classList.remove('hidden-app');
             }
         }
 
-        // Wait for Splash to clear, then route
         window.addEventListener('load', () => {
-            setTimeout(checkAuthAndRoute, 2500); // 2.5s is when splash dies
+            setTimeout(checkAuthAndRoute, 2500); // 2.5s is when failsafe clears splash
         });
 
-        function routeFromRBAC() {
-            const role = document.querySelector('input[name="role"]:checked').value;
-            localStorage.setItem('bizlink_role', role);
-            document.getElementById('rbac-modal').classList.add('hidden-app');
+        // --- 3. EXPLICIT DOM EVENT LISTENERS (FIXES BUTTONS) ---
+        document.addEventListener('DOMContentLoaded', () => {
             
-            if (role === 'salesman' || role === 'viewer') {
-                showToast("Redirecting to Salesman Portal...", false);
-                // Production: window.location.href = '2index.html';
-                setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 800); 
+            // RBAC Continue Button
+            document.getElementById('btn-rbac-continue').addEventListener('click', () => {
+                const role = document.querySelector('input[name="role"]:checked').value;
+                localStorage.setItem('bizlink_role', role);
+                document.getElementById('rbac-modal').classList.add('hidden-app');
+                
+                if (role === 'salesman' || role === 'viewer') {
+                    showToast("Redirecting to Salesman Portal...", false);
+                    setTimeout(() => document.getElementById('auth-container').classList.remove('hidden-app'), 800); 
+                } else {
+                    document.getElementById('auth-container').classList.remove('hidden-app');
+                }
+            });
+
+            // Back to Role Button
+            document.getElementById('btn-back-role').addEventListener('click', () => {
+                document.getElementById('auth-container').classList.add('hidden-app');
+                document.getElementById('rbac-modal').classList.remove('hidden-app');
+                localStorage.removeItem('bizlink_role');
+            });
+
+            // Login Form Submit
+            document.getElementById('form-signin').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-login');
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+
+                btn.disabled = true; 
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
+
+                try {
+                    if (isMockMode) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        localStorage.setItem('bizlink_mock_session', 'active');
+                        showDashboard();
+                        return;
+                    }
+                    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+                    if (error) throw error;
+                    showDashboard();
+                } catch (error) {
+                    showToast(error.message || "Login failed");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
+                }
+            });
+
+            // Full Profile Signup Submit
+            document.getElementById('form-signup').addEventListener('submit', (e) => {
+                e.preventDefault();
+                executeSignupFlow(false);
+            });
+
+            // Quick Register (Skip Details)
+            document.getElementById('btn-quick-signup').addEventListener('click', () => {
+                executeSignupFlow(true);
+            });
+
+            // Forgot Password Submit
+            document.getElementById('form-forgot').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-otp');
+                btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+                try {
+                    if (isMockMode) throw new Error("Link sent! (Mock Mode)");
+                    const { error } = await supabase.auth.resetPasswordForEmail(document.getElementById('otp-email').value);
+                    if (error) throw error;
+                    showToast("Recovery email sent.", false);
+                } catch (err) {
+                    showToast(err.message, !err.message.includes('Mock'));
+                } finally {
+                    btn.disabled = false; btn.innerHTML = 'Send Reset Link';
+                }
+            });
+
+            // Google Login
+            document.getElementById('btn-google-login').addEventListener('click', async () => {
+                if (isMockMode) { 
+                    showToast("Simulating Google Login...", false); 
+                    setTimeout(() => { localStorage.setItem('bizlink_mock_session', 'active'); showDashboard(); }, 1000);
+                    return;
+                }
+                try {
+                    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                    if (error) throw error;
+                } catch(err) { showToast(err.message); }
+            });
+        });
+
+        // --- 4. SIGNUP LOGIC (Handles Full & Quick Skip) ---
+        async function executeSignupFlow(isQuickSkip) {
+            const btnMain = document.getElementById('btn-signup');
+            const btnQuick = document.getElementById('btn-quick-signup');
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            const conf = document.getElementById('reg-confirm').value;
+
+            if(!email || !pass) return showToast("Email and Password required");
+            if (pass !== conf) return showToast("Passwords do not match");
+
+            btnMain.disabled = true; btnQuick.disabled = true;
+            btnMain.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating...';
+
+            // Feature: Auto-generate missing details if Quick Register
+            let companyName = document.getElementById('reg-company').value;
+            let ceoName = document.getElementById('reg-ceo').value;
+            let country = document.getElementById('reg-country').value || "Global";
+            
+            if (isQuickSkip) {
+                const rand = Math.floor(1000 + Math.random() * 9000);
+                if(!companyName) companyName = `bizlink_company_${rand}`;
+                if(!ceoName) ceoName = `bizlink_ceo_${rand}`;
             } else {
-                document.getElementById('auth-container').classList.remove('hidden-app');
+                if(!companyName || !ceoName) {
+                    btnMain.disabled = false; btnQuick.disabled = false;
+                    btnMain.innerHTML = 'Register Full Profile';
+                    return showToast("Please fill Company and CEO names, or use Quick Register.");
+                }
+            }
+
+            try {
+                if (isMockMode) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    showToast(`Account Created! (${companyName})`, false);
+                    switchTab('signin');
+                    return;
+                }
+
+                const { data, error } = await supabase.auth.signUp({
+                    email: email, password: pass,
+                    options: { data: { full_name: ceoName } }
+                });
+                if (error) throw error;
+
+                // Insert to database with default Golden Avatar if no image provided
+                const { error: dbError } = await supabase.from('companies').insert([{
+                    owner_id: data.user.id, company_name: companyName, ceo_name: ceoName,
+                    country: country, email: email, 
+                    logo_url: defaultGoldenAvatar, ceo_image_url: defaultGoldenAvatar
+                }]);
+                if(dbError) console.error("Profile insert failed:", dbError);
+                
+                showToast("Account created! Please sign in.", false);
+                switchTab('signin');
+
+            } catch (error) {
+                showToast(error.message || "Signup failed");
+            } finally {
+                btnMain.disabled = false; btnQuick.disabled = false;
+                btnMain.innerHTML = 'Register Full Profile';
             }
         }
 
+        // --- 5. UI HELPER FUNCTIONS ---
         function showDashboard() {
             document.getElementById('rbac-modal').classList.add('hidden-app');
             document.getElementById('auth-container').classList.add('hidden-app');
-            
             const dash = document.getElementById('dashboard-container');
             dash.classList.remove('hidden-app');
             dash.style.opacity = '0';
@@ -532,41 +682,34 @@
         async function logout() {
             if(!isMockMode && supabase) await supabase.auth.signOut();
             localStorage.removeItem('bizlink_mock_session');
-            localStorage.removeItem('bizlink_role');
-            
             document.getElementById('dashboard-container').classList.add('hidden-app');
             document.getElementById('rbac-modal').classList.remove('hidden-app');
             switchTab('signin');
         }
 
-        // --- 3. UI HELPER FUNCTIONS ---
         function showToast(message, isError = true) {
             const toast = document.getElementById('toast-msg');
             document.getElementById('toast-text').textContent = message;
             document.getElementById('toast-icon').className = isError ? "fa-solid fa-circle-exclamation text-lg" : "fa-solid fa-circle-check text-lg";
-            
             toast.className = isError 
                 ? "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-red-500/10 border-red-500/50 text-red-400 absolute top-4 right-4 z-50 shadow-lg" 
                 : "transform transition-all duration-300 translate-y-0 opacity-100 p-3 rounded mb-4 text-sm font-medium border flex items-center bg-green-500/10 border-green-500/50 text-green-400 absolute top-4 right-4 z-50 shadow-lg";
-            
             toast.classList.remove('hidden');
             setTimeout(() => { toast.classList.add('-translate-y-2', 'opacity-0'); setTimeout(() => toast.classList.add('hidden'), 300); }, 3000);
         }
 
         function switchTab(tab) {
             ['signin', 'signup', 'forgot'].forEach(t => document.getElementById(`form-${t}`).classList.add('hidden'));
-            const tabIn = document.getElementById('tab-signin');
-            const tabUp = document.getElementById('tab-signup');
-
+            const tabIn = document.getElementById('tab-signin'); const tabUp = document.getElementById('tab-signup');
             if (tab === 'signin') {
                 document.getElementById('form-signin').classList.remove('hidden');
                 tabIn.innerHTML = `SIGN IN<div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t shadow-[0_0_10px_#f5c000]"></div>`;
                 tabIn.className = "text-gold font-bold pb-3 px-1 relative text-sm tracking-wide transition";
-                tabUp.innerHTML = `REGISTER COMPANY<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>`;
+                tabUp.innerHTML = `REGISTER<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>`;
                 tabUp.className = "text-gray-500 hover:text-gray-300 font-bold pb-3 px-1 relative transition text-sm tracking-wide";
             } else if (tab === 'signup') {
                 document.getElementById('form-signup').classList.remove('hidden');
-                tabUp.innerHTML = `REGISTER COMPANY<div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t shadow-[0_0_10px_#f5c000]"></div>`;
+                tabUp.innerHTML = `REGISTER<div class="absolute bottom-0 left-0 w-full h-0.5 bg-gold rounded-t shadow-[0_0_10px_#f5c000]"></div>`;
                 tabUp.className = "text-gold font-bold pb-3 px-1 relative text-sm tracking-wide transition";
                 tabIn.innerHTML = `SIGN IN<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent rounded-t"></div>`;
                 tabIn.className = "text-gray-500 hover:text-gray-300 font-bold pb-3 px-1 relative transition text-sm tracking-wide";
@@ -574,14 +717,11 @@
         }
 
         function showForgotPassword() {
-            document.getElementById('form-signin').classList.add('hidden');
-            document.getElementById('form-signup').classList.add('hidden');
-            document.getElementById('form-forgot').classList.remove('hidden');
+            document.getElementById('form-signin').classList.add('hidden'); document.getElementById('form-signup').classList.add('hidden'); document.getElementById('form-forgot').classList.remove('hidden');
         }
 
         function togglePassword(inputId) {
-            const input = document.getElementById(inputId);
-            const icon = input.nextElementSibling;
+            const input = document.getElementById(inputId); const icon = input.nextElementSibling;
             if (input.type === "password") { input.type = "text"; icon.classList.replace('fa-eye', 'fa-eye-slash'); } 
             else { input.type = "password"; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
         }
@@ -599,8 +739,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = document.getElementById(previewId);
-                    img.src = e.target.result; 
-                    img.classList.remove('hidden');
+                    img.src = e.target.result; img.classList.remove('hidden');
                     document.getElementById(iconId).style.display = 'none';
                 }
                 reader.readAsDataURL(input.files[0]);
@@ -608,197 +747,50 @@
         }
 
         function toggleHeart(el) {
-            if (el.classList.contains('text-red-500')) {
-                el.classList.replace('text-red-500', 'text-gray-600');
-                showToast("Removed from wishlist", false);
-            } else {
-                el.classList.replace('text-gray-600', 'text-red-500');
-                showToast("Added to wishlist", false);
-            }
+            if (el.classList.contains('text-red-500')) { el.classList.replace('text-red-500', 'text-gray-600'); showToast("Removed from wishlist", false); } 
+            else { el.classList.replace('text-gray-600', 'text-red-500'); showToast("Added to wishlist", false); }
         }
 
         function testPopup() {
-            const popup = document.getElementById('top-popup');
-            popup.classList.remove('hidden-app');
+            const popup = document.getElementById('top-popup'); popup.classList.remove('hidden-app');
             popup.style.animation = 'dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
-            setTimeout(() => {
-                popup.style.animation = 'slideOutLeft 0.5s ease-in forwards';
-                setTimeout(() => popup.classList.add('hidden-app'), 500);
-            }, 3000);
+            setTimeout(() => { popup.style.animation = 'slideOutLeft 0.5s ease-in forwards'; setTimeout(() => popup.classList.add('hidden-app'), 500); }, 3000);
         }
 
         let isAnimating = false;
         function playLogoAnimation() {
-            if(isAnimating) return;
-            isAnimating = true;
-            const bizlink = document.getElementById('logo-bizlink');
-            const golden = document.getElementById('logo-golden');
-
+            if(isAnimating) return; isAnimating = true;
+            const bizlink = document.getElementById('logo-bizlink'); const golden = document.getElementById('logo-golden');
             bizlink.style.opacity = '0'; bizlink.style.transform = 'scale(0.8)';
             setTimeout(() => {
-                golden.style.animation = 'none'; void golden.offsetWidth;
-                golden.style.animation = 'slideInRight 0.5s ease-out forwards';
+                golden.style.animation = 'none'; void golden.offsetWidth; golden.style.animation = 'slideInRight 0.5s ease-out forwards';
                 setTimeout(() => {
-                    golden.style.animation = 'none'; void golden.offsetWidth;
-                    golden.style.animation = 'slideOutLeft 0.5s ease-in forwards';
-                    setTimeout(() => {
-                        bizlink.style.opacity = '1'; bizlink.style.transform = 'scale(1)';
-                        isAnimating = false;
-                    }, 500);
+                    golden.style.animation = 'none'; void golden.offsetWidth; golden.style.animation = 'slideOutLeft 0.5s ease-in forwards';
+                    setTimeout(() => { bizlink.style.opacity = '1'; bizlink.style.transform = 'scale(1)'; isAnimating = false; }, 500);
                 }, 2000);
             }, 300);
         }
 
-        // Feature #106: Golden Premium Theme Engine
+        // Theme Engine
         let particleAnim;
         function changeTheme(theme) {
             document.body.className = '';
-            if (theme === 'premium') {
-                document.body.classList.add('theme-premium');
-                startParticles();
-                showToast("Golden Premium Theme Applied", false);
-            } else {
-                document.body.classList.add('dark');
-                stopParticles();
-            }
+            if (theme === 'premium') { document.body.classList.add('theme-premium'); startParticles(); showToast("Golden Premium Theme Applied", false); } 
+            else { document.body.classList.add('dark'); stopParticles(); }
         }
 
         function startParticles() {
-            const canvas = document.getElementById('premium-canvas');
-            const ctx = canvas.getContext('2d');
+            const canvas = document.getElementById('premium-canvas'); const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            const particles = [];
-            for(let i=0; i<60; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2, d: Math.random()*1 });
+            const particles = []; for(let i=0; i<60; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2, d: Math.random()*1 });
             function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'rgba(245, 192, 0, 0.4)';
-                particles.forEach(p => {
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-                    p.y -= p.d; if(p.y < 0) p.y = canvas.height;
-                });
+                ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'rgba(245, 192, 0, 0.4)';
+                particles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); p.y -= p.d; if(p.y < 0) p.y = canvas.height; });
                 particleAnim = requestAnimationFrame(draw);
             }
             draw();
         }
         function stopParticles() { if(particleAnim) cancelAnimationFrame(particleAnim); }
-
-        // --- 4. AUTHENTICATION FORMS LOGIC ---
-        
-        async function handleLogin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login');
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-
-            btn.disabled = true; 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
-
-            try {
-                if (isMockMode) {
-                    await new Promise(r => setTimeout(r, 1000));
-                    localStorage.setItem('bizlink_mock_session', 'active');
-                    showDashboard();
-                    return;
-                }
-
-                // Real Supabase Log-in
-                const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
-                if (error) throw error;
-                showDashboard();
-
-            } catch (error) {
-                showToast(error.message || "Login failed");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>';
-            }
-        }
-
-        async function handleSignup(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-signup');
-            const pass = document.getElementById('reg-password').value;
-            const conf = document.getElementById('reg-confirm').value;
-
-            if (pass !== conf) return showToast("Passwords do not match");
-            
-            btn.disabled = true; 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating...';
-
-            try {
-                if (isMockMode) {
-                    await new Promise(r => setTimeout(r, 1500));
-                    showToast("Account Created! Please sign in.", false);
-                    switchTab('signin');
-                    return;
-                }
-
-                // Real Supabase Sign-up
-                const { data, error } = await supabase.auth.signUp({
-                    email: document.getElementById('reg-email').value,
-                    password: pass,
-                    options: { data: { full_name: document.getElementById('reg-ceo').value } }
-                });
-
-                if (error) throw error;
-
-                // Real Supabase Company Insert
-                const { error: dbError } = await supabase.from('companies').insert([{
-                    owner_id: data.user.id,
-                    company_name: document.getElementById('reg-company').value,
-                    ceo_name: document.getElementById('reg-ceo').value,
-                    country: document.getElementById('reg-country').value,
-                    email: document.getElementById('reg-email').value
-                }]);
-
-                if(dbError) console.error("Profile insert failed:", dbError);
-                
-                showToast("Account created! Please sign in.", false);
-                switchTab('signin');
-
-            } catch (error) {
-                showToast(error.message || "Signup failed");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Create Company Account';
-            }
-        }
-
-        async function handleGoogleLogin() {
-            if (isMockMode) { 
-                showToast("Simulating Google Login...", false); 
-                setTimeout(() => {
-                    localStorage.setItem('bizlink_mock_session', 'active');
-                    showDashboard();
-                }, 1000);
-                return;
-            }
-            try {
-                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-                if (error) throw error;
-            } catch(err) {
-                showToast(err.message);
-            }
-        }
-
-        async function handleOTP(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-otp');
-            btn.disabled = true; 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
-
-            try {
-                if (isMockMode) throw new Error("Link sent! (Mock Mode)");
-                const { error } = await supabase.auth.resetPasswordForEmail(document.getElementById('otp-email').value);
-                if (error) throw error;
-                showToast("Recovery email sent.", false);
-            } catch (err) {
-                showToast(err.message, err.message.includes('Mock') ? false : true);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Send Reset Link';
-            }
-        }
     </script>
 </body>
 </html>
