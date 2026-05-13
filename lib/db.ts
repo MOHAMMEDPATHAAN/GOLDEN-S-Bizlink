@@ -46,6 +46,7 @@ const K = {
   PIN: 'biz_pin',
   NETWORK: 'biz_network',
   FEED: 'biz_feed',
+  DRAFT_SIGNUP: 'biz_draft_signup',
 }
 
 // Demo data
@@ -443,4 +444,22 @@ export const uploadFile = async (file: File, bucket: string, path: string): Prom
 
 export function clearAllData(): void {
   Object.values(K).forEach(k => store.remove(k))
+}
+
+// ============================================
+// DRAFT SIGNUP (Save-as-draft functionality)
+// ============================================
+export const draftSignup = {
+  async save(userId: string, data: Record<string, unknown>): Promise<void> {
+    store.set(`${K.DRAFT_SIGNUP}_${userId}`, { ...data, savedAt: new Date().toISOString() })
+  },
+  async get(userId: string): Promise<Record<string, unknown> | null> {
+    return store.get<Record<string, unknown> | null>(`${K.DRAFT_SIGNUP}_${userId}`, null)
+  },
+  async clear(userId: string): Promise<void> {
+    store.remove(`${K.DRAFT_SIGNUP}_${userId}`)
+  },
+  async hasDraft(userId: string): Promise<boolean> {
+    return store.get<Record<string, unknown> | null>(`${K.DRAFT_SIGNUP}_${userId}`, null) !== null
+  },
 }
