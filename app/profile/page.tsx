@@ -120,10 +120,10 @@ export default function ProfilePage() {
             {/* Company Logo */}
             <div className="relative">
               <div className="w-20 h-20 border-4 border-foreground bg-muted overflow-hidden">
-                {company?.logo ? (
+                {company?.logo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={company.logo}
+                    src={company.logo_url}
                     alt={company.name}
                     className="w-full h-full object-cover"
                   />
@@ -147,11 +147,11 @@ export default function ProfilePage() {
                 {company?.name || 'Your Company'}
               </h2>
               <p className="text-sm text-muted-foreground font-medium">
-                {company?.industry_category || 'Industry'}
+                {company?.industry || 'Industry'}
               </p>
               <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                {company?.address?.city}, {company?.country || 'Location'}
+                {company?.city || 'City'}, {company?.country || 'Location'}
               </div>
             </div>
           </div>
@@ -411,8 +411,7 @@ export default function ProfilePage() {
         </button>
       </main>
 
-      <AIChatFab />
-      <BottomNav variant="company" />
+      <BottomNav variant={user?.role === 'salesman' || user?.role === 'viewer' ? 'salesman' : 'company'} />
     </div>
   )
 }

@@ -440,3 +440,47 @@
 .safe-right {
   padding-right: env(safe-area-inset-right);
 }
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smaller shadow for compact cards */
+.shadow-brutal {
+  @apply shadow-[3px_3px_0px_0px] shadow-foreground;
+}
+
+/* Scale utilities for buttons */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+.active\:scale-90:active {
+  transform: scale(0.90);
+}
+
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+/* Border width 3 */
+.border-3 {
+  border-width: 3px;
+}
+
+/* Compact brutalist card */
+.brutalist-card-compact {
+  @apply bg-card border-2 border-foreground shadow-[3px_3px_0px_0px] shadow-foreground;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.brutalist-card-compact:active {
+  transform: translate(1px, 1px);
+  @apply shadow-[1px_1px_0px_0px] shadow-foreground;
+}

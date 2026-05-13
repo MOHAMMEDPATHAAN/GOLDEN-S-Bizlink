@@ -25,7 +25,7 @@ import {
 import { BottomNav } from "@/components/bottom-nav"
 import { AIChatFab } from "@/components/ai-chat-fab"
 import { useAppStore } from "@/lib/store"
-import { db } from "@/lib/db"
+import { auth, settings as settingsDb } from "@/lib/db"
 
 const LANGUAGES = [
   { code: "en", name: "English" },
@@ -107,7 +107,7 @@ export default function SettingsPage() {
     try {
       setSettings(localSettings)
       if (user) {
-        await db.updateUserSettings(user.id, localSettings)
+        await settingsDb.update(user.id, localSettings)
       }
       setHasChanges(false)
     } catch (error) {
@@ -125,7 +125,7 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to log out?")
     if (confirmed) {
-      await db.signOut()
+      await auth.signOut()
       clearSession()
       router.push("/")
     }
@@ -929,7 +929,7 @@ export default function SettingsPage() {
         )}
       </main>
 
-      <BottomNav currentPath="/settings" userRole={user.role} />
+      <BottomNav variant={user.role === "salesman" || user.role === "viewer" ? "salesman" : "company"} />
       <AIChatFab />
     </div>
   )

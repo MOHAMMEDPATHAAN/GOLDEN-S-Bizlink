@@ -2,153 +2,66 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { 
-  TrendingUp, 
-  Star, 
-  Clock, 
-  ChevronRight,
-  Building2,
-  Package,
-  Users,
-  Eye,
-  Heart,
-  Bookmark,
-  Filter
-} from 'lucide-react'
+import { TrendingUp, Star, Clock, ChevronRight, Building2, Package, Eye, Heart, Sparkles, Flame, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppHeader } from '@/components/app-header'
 import { BottomNav } from '@/components/bottom-nav'
-import { AIChatFab } from '@/components/ai-chat-fab'
 import { useAppStore } from '@/lib/store'
-import { auth } from '@/lib/db'
+import { auth, products as productsDb, companies as companiesDb } from '@/lib/db'
 import type { Product, Company } from '@/lib/types'
 
-// Mock data for demo
-const MOCK_PRODUCTS: (Product & { company_name: string })[] = [
-  {
-    id: '1',
-    company_id: 'c1',
-    company_name: 'TechCorp Industries',
-    name: 'Industrial Robot Arm X500',
-    description: 'High-precision robotic arm for manufacturing',
-    images: ['/placeholder.svg?height=200&width=200'],
-    category: 'Robotics',
-    tags: ['automation', 'manufacturing', 'precision'],
-    specifications: { 'Payload': '50kg', 'Reach': '1500mm' },
-    is_featured: true,
-    is_trending: true,
-    is_new_arrival: false,
-    views: 1234,
-    likes: 89,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    company_id: 'c2',
-    company_name: 'Global Materials Co',
-    name: 'Premium Steel Sheets',
-    description: 'High-grade stainless steel for construction',
-    images: ['/placeholder.svg?height=200&width=200'],
-    category: 'Materials',
-    tags: ['steel', 'construction', 'industrial'],
-    specifications: { 'Thickness': '2mm-10mm', 'Grade': '304/316' },
-    is_featured: true,
-    is_trending: false,
-    is_new_arrival: true,
-    views: 856,
-    likes: 45,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    company_id: 'c3',
-    company_name: 'PackagePro Solutions',
-    name: 'Eco-Friendly Packaging Kit',
-    description: 'Sustainable packaging solutions for businesses',
-    images: ['/placeholder.svg?height=200&width=200'],
-    category: 'Packaging',
-    tags: ['eco-friendly', 'sustainable', 'packaging'],
-    specifications: { 'Material': 'Recycled cardboard', 'MOQ': '1000 units' },
-    is_featured: false,
-    is_trending: true,
-    is_new_arrival: true,
-    views: 567,
-    likes: 78,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    company_id: 'c4',
-    company_name: 'ChemWorks Ltd',
-    name: 'Industrial Adhesive XR-200',
-    description: 'High-strength adhesive for heavy-duty applications',
-    images: ['/placeholder.svg?height=200&width=200'],
-    category: 'Chemicals',
-    tags: ['adhesive', 'industrial', 'heavy-duty'],
-    specifications: { 'Bond Strength': '3500 PSI', 'Cure Time': '24h' },
-    is_featured: false,
-    is_trending: false,
-    is_new_arrival: false,
-    views: 234,
-    likes: 23,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-]
+interface ProductWithCompany extends Product { company?: Company }
 
 const CATEGORIES = [
-  { name: 'All', icon: <Package className="w-5 h-5" /> },
-  { name: 'Manufacturing', icon: <Building2 className="w-5 h-5" /> },
-  { name: 'Robotics', icon: <Users className="w-5 h-5" /> },
-  { name: 'Materials', icon: <Package className="w-5 h-5" /> },
-  { name: 'Chemicals', icon: <Package className="w-5 h-5" /> },
+  { name: 'All', icon: Package, color: 'bg-primary' },
+  { name: 'Robotics', icon: Zap, color: 'bg-blue-500' },
+  { name: 'Materials', icon: Building2, color: 'bg-amber-500' },
+  { name: 'Automation', icon: Sparkles, color: 'bg-purple-500' },
 ]
 
 export default function HomePage() {
   const router = useRouter()
-  const { isAuthenticated, user, company, setUser } = useAppStore()
-  
+  const { user, company, setUser, selectedRole } = useAppStore()
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [products, setProducts] = useState(MOCK_PRODUCTS)
+  const [products, setProducts] = useState<ProductWithCompany[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { user } = await auth.getSession()
-      if (!user) {
-        router.push('/auth')
-        return
-      }
-      setUser(user)
+    const init = async () => {
+      const { user: sessionUser } = await auth.getSession()
+      if (!sessionUser) { router.push('/auth'); return }
+      setUser(sessionUser)
+      const allProducts = await productsDb.list()
+      const withCompanies = await Promise.all(
+        allProducts.map(async (p) => {
+          const comp = await companiesDb.get(p.company_id)
+          return { ...p, company: comp || undefined }
+        })
+      )
+      setProducts(withCompanies)
       setIsLoading(false)
     }
-    checkAuth()
+    init()
   }, [router, setUser])
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory)
+  const filteredProducts = selectedCategory === 'All' ? products : products.filter(p => p.category === selectedCategory)
+  const trendingProducts = products.filter(p => p.is_trending).slice(0, 4)
+  const featuredProducts = products.filter(p => p.is_featured).slice(0, 4)
 
-  const trendingProducts = products.filter(p => p.is_trending)
-  const featuredProducts = products.filter(p => p.is_featured)
-  const newArrivals = products.filter(p => p.is_new_arrival)
+  const toggleLike = (id: string) => {
+    setLikedProducts(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+    productsDb.toggleLike(id)
+  }
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-12 h-12">
-            <div className="absolute inset-0 border-4 border-muted" />
-            <div className="absolute inset-0 border-4 border-transparent border-t-primary animate-spin" />
-          </div>
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
-            Loading
-          </p>
-        </div>
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent animate-spin" />
       </div>
     )
   }
@@ -157,89 +70,78 @@ export default function HomePage() {
     <div className="min-h-screen bg-background pb-20">
       <AppHeader />
 
-      <main className="p-4 space-y-6">
-        {/* Welcome Banner */}
-        <div className="brutalist-card p-4 golden-gradient">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 border-4 border-foreground bg-background flex items-center justify-center">
-              <Building2 className="w-7 h-7" />
+      <main className="p-3 space-y-4">
+        {/* Welcome Card - Compact */}
+        <div className="brutalist-card p-3 golden-gradient">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 border-3 border-foreground bg-background flex items-center justify-center flex-shrink-0">
+              {company?.logo_url ? (
+                <img src={company.logo_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <Building2 className="w-5 h-5" />
+              )}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-foreground/70">Welcome back,</p>
-              <h2 className="text-xl font-black text-foreground">
-                {company?.name || user?.email?.split('@')[0] || 'User'}
-              </h2>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Welcome</p>
+              <h2 className="font-black text-base truncate">{company?.name || user?.email?.split('@')[0] || 'User'}</h2>
             </div>
-            <Link 
-              href="/profile"
-              className="px-4 py-2 border-4 border-foreground bg-background font-bold text-sm hover:bg-accent transition-colors"
-            >
-              View Profile
-            </Link>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="brutalist-card p-3 text-center">
-            <Package className="w-6 h-6 mx-auto mb-1" />
-            <p className="text-2xl font-black">{products.length}</p>
-            <p className="text-xs text-muted-foreground font-bold">Products</p>
-          </div>
-          <div className="brutalist-card p-3 text-center">
-            <Eye className="w-6 h-6 mx-auto mb-1" />
-            <p className="text-2xl font-black">2.4K</p>
-            <p className="text-xs text-muted-foreground font-bold">Views</p>
-          </div>
-          <div className="brutalist-card p-3 text-center">
-            <Heart className="w-6 h-6 mx-auto mb-1" />
-            <p className="text-2xl font-black">156</p>
-            <p className="text-xs text-muted-foreground font-bold">Likes</p>
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-lg">Categories</h3>
-            <button className="p-2 border-4 border-foreground hover:bg-accent transition-colors">
-              <Filter className="w-4 h-4" />
+            <button onClick={() => router.push('/profile')} className="px-3 py-1.5 border-2 border-foreground bg-background font-bold text-xs hover:bg-accent active:scale-95 transition-all">
+              Profile
             </button>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-            {CATEGORIES.map((cat) => (
+        </div>
+
+        {/* Quick Stats - More Compact */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: Package, value: products.length, label: 'Products', color: 'text-primary' },
+            { icon: Eye, value: '2.4K', label: 'Views', color: 'text-blue-500' },
+            { icon: Heart, value: '156', label: 'Likes', color: 'text-red-500' },
+          ].map((stat, i) => (
+            <div key={i} className="brutalist-card p-2.5 text-center">
+              <stat.icon className={cn("w-5 h-5 mx-auto mb-0.5", stat.color)} />
+              <p className="text-lg font-black">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Categories - Horizontal Scroll */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">
+          {CATEGORIES.map(cat => {
+            const Icon = cat.icon
+            const isActive = selectedCategory === cat.name
+            return (
               <button
                 key={cat.name}
                 onClick={() => setSelectedCategory(cat.name)}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 border-4 whitespace-nowrap font-bold transition-all',
-                  selectedCategory === cat.name
-                    ? 'border-primary bg-primary text-primary-foreground shadow-[3px_3px_0px_0px] shadow-foreground'
-                    : 'border-foreground bg-background hover:bg-accent'
+                  "flex items-center gap-1.5 px-3 py-1.5 border-2 border-foreground font-bold text-xs whitespace-nowrap transition-all active:scale-95",
+                  isActive ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent"
                 )}
               >
-                {cat.icon}
+                <Icon className="w-3.5 h-3.5" />
                 {cat.name}
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
 
         {/* Trending Section */}
         {trendingProducts.length > 0 && (
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <h3 className="font-bold text-lg">Trending Now</h3>
-              </div>
-              <Link href="/products?filter=trending" className="text-sm text-primary font-bold hover:underline flex items-center gap-1">
-                See All <ChevronRight className="w-4 h-4" />
-              </Link>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-black text-sm flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-orange-500" />
+                Trending
+              </h3>
+              <button onClick={() => router.push('/explore?tab=trending')} className="text-xs font-bold text-primary flex items-center active:scale-95">
+                See All <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4">
-              {trendingProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">
+              {trendingProducts.map(product => (
+                <ProductCard key={product.id} product={product} isLiked={likedProducts.has(product.id)} onLike={() => toggleLike(product.id)} onClick={() => router.push(`/seeproduct/${product.id}`)} />
               ))}
             </div>
           </section>
@@ -248,146 +150,114 @@ export default function HomePage() {
         {/* Featured Section */}
         {featuredProducts.length > 0 && (
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-primary" />
-                <h3 className="font-bold text-lg">Featured Products</h3>
-              </div>
-              <Link href="/products?filter=featured" className="text-sm text-primary font-bold hover:underline flex items-center gap-1">
-                See All <ChevronRight className="w-4 h-4" />
-              </Link>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-black text-sm flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-yellow-500" />
+                Featured
+              </h3>
+              <button onClick={() => router.push('/explore?tab=featured')} className="text-xs font-bold text-primary flex items-center active:scale-95">
+                See All <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+            <div className="grid grid-cols-2 gap-2">
+              {featuredProducts.map(product => (
+                <ProductCardGrid key={product.id} product={product} isLiked={likedProducts.has(product.id)} onLike={() => toggleLike(product.id)} onClick={() => router.push(`/seeproduct/${product.id}`)} />
               ))}
             </div>
           </section>
         )}
 
-        {/* New Arrivals */}
-        {newArrivals.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                <h3 className="font-bold text-lg">New Arrivals</h3>
-              </div>
-              <Link href="/products?filter=new" className="text-sm text-primary font-bold hover:underline flex items-center gap-1">
-                See All <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4">
-              {newArrivals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* All Products Grid */}
+        {/* All Products */}
         <section>
-          <h3 className="font-bold text-lg mb-3">
-            {selectedCategory === 'All' ? 'All Products' : selectedCategory}
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} compact />
-            ))}
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-black text-sm flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-green-500" />
+              All Products
+            </h3>
+            <span className="text-xs text-muted-foreground font-bold">{filteredProducts.length} items</span>
           </div>
+          {filteredProducts.length === 0 ? (
+            <div className="brutalist-card p-6 text-center">
+              <Package className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
+              <p className="font-bold text-sm">No products found</p>
+              <p className="text-xs text-muted-foreground">Try a different category</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {filteredProducts.map(product => (
+                <ProductCardGrid key={product.id} product={product} isLiked={likedProducts.has(product.id)} onLike={() => toggleLike(product.id)} onClick={() => router.push(`/seeproduct/${product.id}`)} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
-      <AIChatFab />
-      <BottomNav variant="company" />
+      <BottomNav variant={selectedRole === 'salesman' || selectedRole === 'viewer' ? 'salesman' : 'company'} />
     </div>
   )
 }
 
-interface ProductCardProps {
-  product: Product & { company_name: string }
-  compact?: boolean
+// Compact Product Card for Horizontal Scroll
+function ProductCard({ product, isLiked, onLike, onClick }: { product: ProductWithCompany; isLiked: boolean; onLike: () => void; onClick: () => void }) {
+  return (
+    <div className="brutalist-card w-36 flex-shrink-0 overflow-hidden">
+      <div className="relative aspect-square bg-muted" onClick={onClick}>
+        {product.images?.[0] ? (
+          <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center"><Package className="w-8 h-8 text-muted-foreground" /></div>
+        )}
+        <button onClick={(e) => { e.stopPropagation(); onLike() }} className={cn("absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center border-2 border-foreground bg-background active:scale-90 transition-transform", isLiked && "bg-red-500 text-white")}>
+          <Heart className={cn("w-3.5 h-3.5", isLiked && "fill-current")} />
+        </button>
+        {product.is_trending && (
+          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-orange-500 text-white text-[8px] font-bold border border-foreground">HOT</span>
+        )}
+      </div>
+      <div className="p-2" onClick={onClick}>
+        <p className="text-[10px] text-muted-foreground truncate">{product.company?.name}</p>
+        <p className="font-bold text-xs truncate">{product.name}</p>
+        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-0.5"><Eye className="w-2.5 h-2.5" />{product.views}</span>
+          <span className="flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{product.likes}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function ProductCard({ product, compact = false }: ProductCardProps) {
-  const [isLiked, setIsLiked] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-
+// Grid Product Card
+function ProductCardGrid({ product, isLiked, onLike, onClick }: { product: ProductWithCompany; isLiked: boolean; onLike: () => void; onClick: () => void }) {
   return (
-    <Link
-      href={`/seeproduct/${product.id}`}
-      className={cn(
-        'brutalist-card overflow-hidden flex-shrink-0',
-        compact ? 'w-full' : 'w-48'
-      )}
-    >
-      {/* Image */}
-      <div className="relative aspect-square bg-muted">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-        
-        {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.is_trending && (
-            <span className="px-2 py-0.5 bg-destructive text-destructive-foreground text-xs font-bold border-2 border-foreground">
-              TRENDING
-            </span>
-          )}
-          {product.is_new_arrival && (
-            <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold border-2 border-foreground">
-              NEW
-            </span>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1">
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              setIsLiked(!isLiked)
-            }}
-            className={cn(
-              'p-1.5 border-2 border-foreground transition-colors',
-              isLiked ? 'bg-destructive text-white' : 'bg-background'
-            )}
-            aria-label={isLiked ? 'Unlike' : 'Like'}
-          >
-            <Heart className={cn('w-4 h-4', isLiked && 'fill-current')} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              setIsSaved(!isSaved)
-            }}
-            className={cn(
-              'p-1.5 border-2 border-foreground transition-colors',
-              isSaved ? 'bg-primary text-primary-foreground' : 'bg-background'
-            )}
-            aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
-          >
-            <Bookmark className={cn('w-4 h-4', isSaved && 'fill-current')} />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-3">
-        <p className="text-xs text-muted-foreground font-medium truncate">{product.company_name}</p>
-        <h4 className="font-bold text-sm line-clamp-2 mt-0.5">{product.name}</h4>
-        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" /> {product.views}
+    <div className="brutalist-card overflow-hidden">
+      <div className="relative aspect-square bg-muted cursor-pointer" onClick={onClick}>
+        {product.images?.[0] ? (
+          <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center"><Package className="w-10 h-10 text-muted-foreground" /></div>
+        )}
+        <button onClick={(e) => { e.stopPropagation(); onLike() }} className={cn("absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center border-2 border-foreground bg-background active:scale-90 transition-transform", isLiked && "bg-red-500 text-white")}>
+          <Heart className={cn("w-3.5 h-3.5", isLiked && "fill-current")} />
+        </button>
+        {product.is_featured && (
+          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-yellow-500 text-black text-[8px] font-bold border border-foreground flex items-center gap-0.5">
+            <Star className="w-2 h-2 fill-current" /> TOP
           </span>
-          <span className="flex items-center gap-1">
-            <Heart className="w-3 h-3" /> {product.likes}
+        )}
+      </div>
+      <div className="p-2 cursor-pointer" onClick={onClick}>
+        <p className="text-[10px] text-muted-foreground truncate">{product.company?.name}</p>
+        <p className="font-bold text-xs truncate leading-tight">{product.name}</p>
+        <p className="text-[10px] text-muted-foreground truncate mt-0.5">{product.category}</p>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Eye className="w-2.5 h-2.5" />{product.views}
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Heart className="w-2.5 h-2.5" />{product.likes}
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

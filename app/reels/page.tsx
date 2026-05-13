@@ -1,386 +1,290 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, Volume2, VolumeX, Play, Pause, MoreVertical, User, ChevronUp, ChevronDown, Eye, X } from "lucide-react"
+import { Heart, MessageCircle, Share2, Bookmark, Volume2, VolumeX, Play, Building2, Eye, X, ChevronUp, ChevronDown, Send } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useAppStore } from "@/lib/store"
 import { BottomNav } from "@/components/bottom-nav"
-import { AIChatFab } from "@/components/ai-chat-fab"
+import { reels as reelsDb, companies, auth } from "@/lib/db"
+import type { Reel, Company } from "@/lib/types"
 
-interface Reel {
-  id: string
-  companyId: string
-  companyName: string
-  companyLogo?: string
-  videoUrl?: string
-  thumbnailUrl?: string
-  description: string
-  productId?: string
-  productName?: string
-  likes: number
-  comments: number
-  shares: number
-  views: number
-  isLiked: boolean
-  isSaved: boolean
-  createdAt: string
+interface ReelWithCompany extends Reel {
+  company?: Company
 }
 
 export default function ReelsPage() {
   const router = useRouter()
-  const { user, settings } = useAppStore()
-  const [reels, setReels] = useState<Reel[]>([])
+  const { user, setUser, selectedRole } = useAppStore()
+  const [reelsList, setReelsList] = useState<ReelWithCompany[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(true)
   const [showComments, setShowComments] = useState(false)
+  const [likedReels, setLikedReels] = useState<Set<string>>(new Set())
+  const [savedReels, setSavedReels] = useState<Set<string>>(new Set())
   const containerRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
 
   useEffect(() => {
-    loadReels()
-  }, [])
-
-  const loadReels = async () => {
-    setIsLoading(true)
-    try {
-      // Mock reels data
-      const mockReels: Reel[] = Array.from({ length: 10 }, (_, i) => ({
-        id: `reel-${i + 1}`,
-        companyId: `company-${i + 1}`,
-        companyName: `Company ${i + 1}`,
-        description: `Check out our amazing product! Perfect for B2B wholesale. #business #wholesale #b2b #trending`,
-        productId: `product-${i + 1}`,
-        productName: `Product ${i + 1}`,
-        likes: Math.floor(Math.random() * 10000),
-        comments: Math.floor(Math.random() * 500),
-        shares: Math.floor(Math.random() * 200),
-        views: Math.floor(Math.random() * 50000),
-        isLiked: false,
-        isSaved: false,
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      }))
-      setReels(mockReels)
-    } finally {
+    const init = async () => {
+      const { user: sessionUser } = await auth.getSession()
+      if (!sessionUser) { router.push('/auth'); return }
+      setUser(sessionUser)
+      
+      const allReels = await reelsDb.list()
+      const withCompanies = await Promise.all(
+        allReels.map(async (r) => {
+          const company = await companies.get(r.company_id)
+          return { ...r, company: company || undefined }
+        })
+      )
+      setReelsList(withCompanies)
       setIsLoading(false)
     }
+    init()
+  }, [router, setUser])
+
+  const navigate = useCallback((dir: 'up' | 'down') => {
+    if (dir === 'down' && currentIndex < reelsList.length - 1) {
+      setCurrentIndex(i => i + 1)
+    } else if (dir === 'up' && currentIndex > 0) {
+      setCurrentIndex(i => i - 1)
+    }
+  }, [currentIndex, reelsList.length])
+
+  const handleLike = (id: string) => {
+    setLikedReels(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else { next.add(id); reelsDb.toggleLike(id) }
+      return next
+    })
+    setReelsList(prev => prev.map(r => r.id === id ? { ...r, likes: likedReels.has(id) ? r.likes - 1 : r.likes + 1 } : r))
   }
 
-  const handleLike = (reelId: string) => {
-    setReels(reels.map(reel => {
-      if (reel.id === reelId) {
-        return {
-          ...reel,
-          isLiked: !reel.isLiked,
-          likes: reel.isLiked ? reel.likes - 1 : reel.likes + 1
-        }
-      }
-      return reel
-    }))
+  const handleSave = (id: string) => {
+    setSavedReels(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
   }
 
-  const handleSave = (reelId: string) => {
-    setReels(reels.map(reel => {
-      if (reel.id === reelId) {
-        return { ...reel, isSaved: !reel.isSaved }
-      }
-      return reel
-    }))
-  }
-
-  const handleShare = async (reel: Reel) => {
+  const handleShare = async (reel: ReelWithCompany) => {
     if (navigator.share) {
-      await navigator.share({
-        title: reel.companyName,
-        text: reel.description,
-        url: `/reels/${reel.id}`
-      })
+      try {
+        await navigator.share({ title: reel.title, text: reel.description, url: window.location.href })
+      } catch {}
     }
   }
 
-  const goToNext = () => {
-    if (currentIndex < reels.length - 1) {
-      setCurrentIndex(currentIndex + 1)
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') navigate('down')
+      if (e.key === 'ArrowUp') navigate('up')
+      if (e.key === ' ') { e.preventDefault(); setIsPlaying(p => !p) }
+      if (e.key === 'm') setIsMuted(m => !m)
     }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [navigate])
+
+  // Touch swipe
+  const onTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStartY.current - e.changedTouches[0].clientY
+    if (Math.abs(diff) > 50) navigate(diff > 0 ? 'down' : 'up')
   }
 
-  const goToPrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-    }
-  }
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
-    return num.toString()
-  }
-
-  const currentReel = reels[currentIndex]
+  const fmt = (n: number) => n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : n >= 1e3 ? `${(n/1e3).toFixed(1)}K` : String(n)
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p>Loading Reels...</p>
-        </div>
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  return (
-    <div className="h-screen bg-black overflow-hidden relative" ref={containerRef}>
-      {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-        <button
-          onClick={() => router.back()}
-          className="p-2 text-white hover:bg-white/20 transition-colors"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-xl font-bold text-white">Reels</h1>
-        <button
-          onClick={() => setIsMuted(!isMuted)}
-          className="p-2 text-white hover:bg-white/20 transition-colors"
-        >
-          {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-        </button>
-      </header>
-
-      {/* Reel Content */}
-      {currentReel && (
-        <div className="h-full relative">
-          {/* Video/Image Placeholder */}
-          <div 
-            className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center"
-            onClick={() => setIsPlaying(!isPlaying)}
-          >
-            {/* Placeholder pattern */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute inset-0" style={{
-                backgroundImage: 'linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%)',
-                backgroundSize: '20px 20px',
-                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-              }} />
-            </div>
-            
-            {/* Play/Pause indicator */}
-            {!isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <div className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center">
-                  <Play className="w-10 h-10 text-white ml-1" />
-                </div>
-              </div>
-            )}
-
-            {/* Product Tag */}
-            {currentReel.productName && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  router.push(`/products/${currentReel.productId}`)
-                }}
-                className="absolute bottom-32 left-4 right-20 bg-white/90 text-black p-3 flex items-center gap-3 border-4 border-black"
-              >
-                <div className="w-12 h-12 bg-black/10 flex items-center justify-center border-2 border-black flex-shrink-0">
-                  <Eye className="w-6 h-6" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="font-bold truncate">{currentReel.productName}</p>
-                  <p className="text-sm text-gray-600">View Product</p>
-                </div>
-              </button>
-            )}
-          </div>
-
-          {/* Right Side Actions */}
-          <div className="absolute right-4 bottom-40 flex flex-col items-center gap-5 z-20">
-            {/* Company Profile */}
-            <button
-              onClick={() => router.push(`/company/${currentReel.companyId}`)}
-              className="relative"
-            >
-              <div className="w-12 h-12 rounded-full border-4 border-white bg-primary flex items-center justify-center overflow-hidden">
-                {currentReel.companyLogo ? (
-                  <img src={currentReel.companyLogo} alt={currentReel.companyName} className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-primary-foreground" />
-                )}
-              </div>
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-white">
-                <span className="text-xs text-primary-foreground font-bold">+</span>
-              </span>
-            </button>
-
-            {/* Like */}
-            <button
-              onClick={() => handleLike(currentReel.id)}
-              className="flex flex-col items-center"
-            >
-              <div className={`p-2 rounded-full ${currentReel.isLiked ? "text-red-500" : "text-white"}`}>
-                <Heart className={`w-8 h-8 ${currentReel.isLiked ? "fill-current" : ""}`} />
-              </div>
-              <span className="text-white text-xs font-bold">{formatNumber(currentReel.likes)}</span>
-            </button>
-
-            {/* Comments */}
-            <button
-              onClick={() => setShowComments(true)}
-              className="flex flex-col items-center"
-            >
-              <div className="p-2 text-white">
-                <MessageCircle className="w-8 h-8" />
-              </div>
-              <span className="text-white text-xs font-bold">{formatNumber(currentReel.comments)}</span>
-            </button>
-
-            {/* Share */}
-            <button
-              onClick={() => handleShare(currentReel)}
-              className="flex flex-col items-center"
-            >
-              <div className="p-2 text-white">
-                <Share2 className="w-8 h-8" />
-              </div>
-              <span className="text-white text-xs font-bold">{formatNumber(currentReel.shares)}</span>
-            </button>
-
-            {/* Save */}
-            <button
-              onClick={() => handleSave(currentReel.id)}
-              className="flex flex-col items-center"
-            >
-              <div className={`p-2 ${currentReel.isSaved ? "text-primary" : "text-white"}`}>
-                <Bookmark className={`w-8 h-8 ${currentReel.isSaved ? "fill-current" : ""}`} />
-              </div>
-            </button>
-          </div>
-
-          {/* Bottom Info */}
-          <div className="absolute bottom-24 left-4 right-20 z-20">
-            <button
-              onClick={() => router.push(`/company/${currentReel.companyId}`)}
-              className="font-bold text-white mb-2 hover:underline"
-            >
-              @{currentReel.companyName}
-            </button>
-            <p className="text-white text-sm leading-relaxed line-clamp-3">
-              {currentReel.description}
-            </p>
-            <div className="flex items-center gap-2 mt-2 text-white/70 text-xs">
-              <Eye className="w-4 h-4" />
-              <span>{formatNumber(currentReel.views)} views</span>
-            </div>
-          </div>
-
-          {/* Navigation Arrows */}
-          {currentIndex > 0 && (
-            <button
-              onClick={goToPrevious}
-              className="absolute top-1/2 -translate-y-1/2 left-4 z-20 p-2 bg-white/20 text-white hover:bg-white/30 transition-colors hidden md:block"
-            >
-              <ChevronUp className="w-6 h-6" />
-            </button>
-          )}
-          {currentIndex < reels.length - 1 && (
-            <button
-              onClick={goToNext}
-              className="absolute top-1/2 -translate-y-1/2 right-20 z-20 p-2 bg-white/20 text-white hover:bg-white/30 transition-colors hidden md:block"
-            >
-              <ChevronDown className="w-6 h-6" />
-            </button>
-          )}
-
-          {/* Progress Bar */}
-          <div className="absolute top-16 left-4 right-4 z-30 flex gap-1">
-            {reels.map((_, index) => (
-              <div
-                key={index}
-                className={`h-1 flex-1 transition-colors ${
-                  index === currentIndex ? "bg-white" : index < currentIndex ? "bg-white/70" : "bg-white/30"
-                }`}
-              />
-            ))}
-          </div>
+  if (reelsList.length === 0) {
+    return (
+      <div className="h-screen bg-background flex flex-col items-center justify-center p-4 pb-20">
+        <div className="w-14 h-14 border-4 border-foreground bg-muted flex items-center justify-center mb-4">
+          <Play className="w-6 h-6" />
         </div>
-      )}
+        <h2 className="font-bold text-lg mb-1">No Reels Yet</h2>
+        <p className="text-muted-foreground text-sm mb-4">Be the first to upload!</p>
+        <button onClick={() => router.push('/add')} className="brutalist-btn text-sm py-2 px-4">
+          Create Reel
+        </button>
+        <BottomNav variant={selectedRole === 'salesman' || selectedRole === 'viewer' ? 'salesman' : 'company'} />
+      </div>
+    )
+  }
 
-      {/* Swipe Detection */}
-      <div
-        className="absolute inset-0 z-10"
-        onTouchStart={(e) => {
-          const touch = e.touches[0]
-          const startY = touch.clientY
-          
-          const handleTouchEnd = (endEvent: TouchEvent) => {
-            const endY = endEvent.changedTouches[0].clientY
-            const diff = startY - endY
-            
-            if (Math.abs(diff) > 50) {
-              if (diff > 0) goToNext()
-              else goToPrevious()
-            }
-            
-            document.removeEventListener("touchend", handleTouchEnd)
-          }
-          
-          document.addEventListener("touchend", handleTouchEnd)
-        }}
-      />
+  const current = reelsList[currentIndex]
+  const isLiked = likedReels.has(current.id)
+  const isSaved = savedReels.has(current.id)
 
-      {/* Comments Modal */}
-      {showComments && currentReel && (
+  return (
+    <div ref={containerRef} className="h-screen bg-black overflow-hidden relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* Video/Placeholder */}
+      <div className="absolute inset-0" onClick={() => setIsPlaying(p => !p)}>
+        {current.video_url ? (
+          <video src={current.video_url} className="w-full h-full object-cover" autoPlay={isPlaying} loop muted={isMuted} playsInline />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/30 via-black to-black flex items-center justify-center">
+            <div className="text-center text-white/70">
+              <Building2 className="w-12 h-12 mx-auto mb-2" />
+              <p className="font-bold">{current.title}</p>
+              <p className="text-sm">{current.company?.name}</p>
+            </div>
+          </div>
+        )}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur flex items-center justify-center">
+              <Play className="w-7 h-7 text-white ml-1" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+
+      {/* Progress dots */}
+      <div className="absolute top-12 left-3 right-3 flex gap-0.5 z-30">
+        {reelsList.map((_, i) => (
+          <div key={i} className={cn("h-0.5 flex-1 rounded-full", i === currentIndex ? "bg-white" : i < currentIndex ? "bg-white/60" : "bg-white/25")} />
+        ))}
+      </div>
+
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 p-3 flex items-center justify-between z-30 safe-top">
+        <h1 className="text-white font-bold">Reels</h1>
+        <div className="flex gap-2">
+          <button onClick={() => setIsMuted(m => !m)} className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center active:scale-95 transition-transform">
+            {isMuted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Nav arrows */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+        <button onClick={() => navigate('up')} disabled={currentIndex === 0} className={cn("w-9 h-9 rounded-full bg-black/40 flex items-center justify-center active:scale-95 transition-transform", currentIndex === 0 && "opacity-30")}>
+          <ChevronUp className="w-5 h-5 text-white" />
+        </button>
+        <button onClick={() => navigate('down')} disabled={currentIndex === reelsList.length - 1} className={cn("w-9 h-9 rounded-full bg-black/40 flex items-center justify-center active:scale-95 transition-transform", currentIndex === reelsList.length - 1 && "opacity-30")}>
+          <ChevronDown className="w-5 h-5 text-white" />
+        </button>
+      </div>
+
+      {/* Side actions */}
+      <div className="absolute right-3 bottom-28 flex flex-col items-center gap-4 z-20">
+        {/* Company avatar */}
+        <button onClick={() => router.push(`/seeprofile/${current.company_id}`)} className="mb-2">
+          <div className="w-10 h-10 rounded-full border-2 border-white bg-primary/80 flex items-center justify-center overflow-hidden">
+            {current.company?.logo_url ? <img src={current.company.logo_url} alt="" className="w-full h-full object-cover" /> : <Building2 className="w-5 h-5 text-white" />}
+          </div>
+        </button>
+
+        {/* Like */}
+        <button onClick={() => handleLike(current.id)} className="flex flex-col items-center active:scale-95 transition-transform">
+          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", isLiked ? "bg-red-500" : "bg-black/40")}>
+            <Heart className={cn("w-5 h-5 text-white", isLiked && "fill-white")} />
+          </div>
+          <span className="text-white text-[10px] mt-0.5 font-medium">{fmt(current.likes)}</span>
+        </button>
+
+        {/* Comments */}
+        <button onClick={() => setShowComments(true)} className="flex flex-col items-center active:scale-95 transition-transform">
+          <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+            <MessageCircle className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-white text-[10px] mt-0.5 font-medium">{fmt(current.comments_count)}</span>
+        </button>
+
+        {/* Share */}
+        <button onClick={() => handleShare(current)} className="flex flex-col items-center active:scale-95 transition-transform">
+          <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+            <Share2 className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-white text-[10px] mt-0.5 font-medium">{fmt(current.shares)}</span>
+        </button>
+
+        {/* Save */}
+        <button onClick={() => handleSave(current.id)} className="flex flex-col items-center active:scale-95 transition-transform">
+          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", isSaved ? "bg-primary" : "bg-black/40")}>
+            <Bookmark className={cn("w-5 h-5 text-white", isSaved && "fill-white")} />
+          </div>
+        </button>
+      </div>
+
+      {/* Bottom info */}
+      <div className="absolute bottom-20 left-3 right-16 z-20">
+        <button onClick={() => router.push(`/seeprofile/${current.company_id}`)} className="flex items-center gap-2 mb-2">
+          <span className="text-white font-bold text-sm">@{current.company?.name || 'Company'}</span>
+        </button>
+        <h3 className="text-white font-bold text-sm mb-0.5">{current.title}</h3>
+        {current.description && <p className="text-white/80 text-xs line-clamp-2">{current.description}</p>}
+        <div className="flex items-center gap-2 mt-1.5 text-white/60 text-[10px]">
+          <Eye className="w-3 h-3" />
+          <span>{fmt(current.views)} views</span>
+        </div>
+        {current.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {current.tags.slice(0, 4).map(tag => <span key={tag} className="text-white/50 text-[10px]">#{tag}</span>)}
+          </div>
+        )}
+      </div>
+
+      {/* Counter */}
+      <div className="absolute top-3 right-3 z-30 safe-top">
+        <span className="text-white/60 text-[10px] font-medium">{currentIndex + 1}/{reelsList.length}</span>
+      </div>
+
+      {/* Comments modal */}
+      {showComments && (
         <div className="fixed inset-0 z-50 flex items-end">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowComments(false)} />
-          <div className="relative w-full max-h-[70vh] bg-card border-t-4 border-foreground flex flex-col">
-            <div className="p-4 border-b-4 border-foreground flex items-center justify-between">
-              <h3 className="font-bold text-lg">{formatNumber(currentReel.comments)} Comments</h3>
-              <button onClick={() => setShowComments(false)} className="p-2 hover:bg-muted">
-                <X className="w-5 h-5" />
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowComments(false)} />
+          <div className="relative w-full max-h-[65vh] bg-card border-t-4 border-foreground flex flex-col animate-in slide-in-from-bottom duration-200">
+            <div className="p-3 border-b-2 border-muted flex items-center justify-between">
+              <h3 className="font-bold text-sm">{fmt(current.comments_count)} Comments</h3>
+              <button onClick={() => setShowComments(false)} className="p-1.5 hover:bg-muted rounded active:scale-95 transition-transform">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted border-2 border-foreground flex-shrink-0 flex items-center justify-center">
-                    <User className="w-5 h-5 text-muted-foreground" />
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="flex gap-2">
+                  <div className="w-8 h-8 rounded-full bg-muted border-2 border-foreground flex-shrink-0 flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm">User {i + 1}</p>
-                    <p className="text-sm text-muted-foreground">Great product! Would love to know more about wholesale pricing.</p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                      <span>{i + 1}h ago</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-xs">User {i}</p>
+                    <p className="text-xs text-muted-foreground">Great product! Would love wholesale pricing.</p>
+                    <div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
+                      <span>{i}h</span>
                       <button className="hover:text-foreground">Reply</button>
-                      <button className="hover:text-foreground flex items-center gap-1">
-                        <Heart className="w-3 h-3" />
-                        {Math.floor(Math.random() * 50)}
-                      </button>
+                      <button className="hover:text-foreground flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{i * 5}</button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            <div className="p-4 border-t-4 border-foreground flex gap-2">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                className="brutalist-input flex-1"
-              />
-              <button className="brutalist-btn px-4">
-                Post
-              </button>
+            <div className="p-3 border-t-2 border-muted flex gap-2">
+              <input type="text" placeholder="Add a comment..." className="brutalist-input flex-1 py-2 text-sm" />
+              <button className="brutalist-btn px-3 py-2"><Send className="w-4 h-4" /></button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation */}
-      <BottomNav userType={user?.role === "salesman" || user?.role === "viewer" ? "salesman" : "company"} />
-
-      {/* AI Chat FAB - Hidden on reels for cleaner view */}
+      <BottomNav variant={selectedRole === 'salesman' || selectedRole === 'viewer' ? 'salesman' : 'company'} />
     </div>
   )
 }
