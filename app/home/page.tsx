@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { AppHeader } from '@/components/app-header'
 import { BottomNav } from '@/components/bottom-nav'
 import { useAppStore } from '@/lib/store'
-import { auth, products as productsDb, companies as companiesDb } from '@/lib/db'
+import { auth, products as productsDb } from '@/lib/db'
 import type { Product, Company } from '@/lib/types'
 
 interface ProductWithCompany extends Product { company?: Company }
@@ -32,14 +32,9 @@ export default function HomePage() {
       const { user: sessionUser } = await auth.getSession()
       if (!sessionUser) { router.push('/auth'); return }
       setUser(sessionUser)
+      // db.ts joins company data — no extra fetch needed
       const allProducts = await productsDb.list()
-      const withCompanies = await Promise.all(
-        allProducts.map(async (p) => {
-          const comp = await companiesDb.get(p.company_id)
-          return { ...p, company: comp || undefined }
-        })
-      )
-      setProducts(withCompanies)
+      setProducts(allProducts as ProductWithCompany[])
       setIsLoading(false)
     }
     init()
@@ -95,8 +90,8 @@ export default function HomePage() {
         <div className="grid grid-cols-3 gap-2">
           {[
             { icon: Package, value: products.length, label: 'Products', color: 'text-primary' },
-            { icon: Eye, value: '2.4K', label: 'Views', color: 'text-blue-500' },
-            { icon: Heart, value: '156', label: 'Likes', color: 'text-red-500' },
+            { icon: Eye, value: products.reduce((s, p) => s + (p.views ?? 0), 0), label: 'Views', color: 'text-blue-500' },
+            { icon: Heart, value: products.reduce((s, p) => s + (p.likes ?? 0), 0), label: 'Likes', color: 'text-red-500' },
           ].map((stat, i) => (
             <div key={i} className="brutalist-card p-2.5 text-center">
               <stat.icon className={cn("w-5 h-5 mx-auto mb-0.5", stat.color)} />

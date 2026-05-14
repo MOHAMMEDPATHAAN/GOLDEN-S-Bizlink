@@ -6,7 +6,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Volume2, VolumeX, Play, Buildin
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/lib/store"
 import { BottomNav } from "@/components/bottom-nav"
-import { reels as reelsDb, companies, auth } from "@/lib/db"
+import { reels as reelsDb, auth } from "@/lib/db"
 import type { Reel, Company } from "@/lib/types"
 
 interface ReelWithCompany extends Reel {
@@ -33,14 +33,9 @@ export default function ReelsPage() {
       if (!sessionUser) { router.push('/auth'); return }
       setUser(sessionUser)
       
+      // db.ts joins company data — no extra fetch needed
       const allReels = await reelsDb.list()
-      const withCompanies = await Promise.all(
-        allReels.map(async (r) => {
-          const company = await companies.get(r.company_id)
-          return { ...r, company: company || undefined }
-        })
-      )
-      setReelsList(withCompanies)
+      setReelsList(allReels as ReelWithCompany[])
       setIsLoading(false)
     }
     init()
@@ -258,23 +253,10 @@ export default function ReelsPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-              {[1,2,3,4,5].map(i => (
-                <div key={i} className="flex gap-2">
-                  <div className="w-8 h-8 rounded-full bg-muted border-2 border-foreground flex-shrink-0 flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xs">User {i}</p>
-                    <p className="text-xs text-muted-foreground">Great product! Would love wholesale pricing.</p>
-                    <div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
-                      <span>{i}h</span>
-                      <button className="hover:text-foreground">Reply</button>
-                      <button className="hover:text-foreground flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{i * 5}</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex-1 overflow-y-auto p-3 flex flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+              <MessageCircle className="w-8 h-8 opacity-30" />
+              <p className="text-sm font-bold">No comments yet</p>
+              <p className="text-xs">Be the first to comment.</p>
             </div>
             <div className="p-3 border-t-2 border-muted flex gap-2">
               <input type="text" placeholder="Add a comment..." className="brutalist-input flex-1 py-2 text-sm" />

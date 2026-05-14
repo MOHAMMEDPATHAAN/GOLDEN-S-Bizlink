@@ -1,374 +1,195 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, Star, Zap, Crown, Sparkles, Shield, TrendingUp, Users, MessageCircle, Package, Eye, X } from "lucide-react"
+import { useState } from "react"
+import { ArrowLeft, Check, Package, TrendingUp, Star, Crown, Building, Infinity } from "lucide-react"
 import { useAppStore } from "@/lib/store"
+import { ALL_PLANS, type PlanId } from "@/lib/plan-gating"
+import { cn } from "@/lib/utils"
 
-interface PricingPlan {
-  id: string
-  name: string
-  icon: React.ElementType
-  price: number
-  period: "month" | "year"
-  description: string
-  features: string[]
-  highlighted?: boolean
-  badge?: string
+const ICONS: Record<PlanId, React.ElementType> = {
+  starter: Package,
+  growth: TrendingUp,
+  pro: Star,
+  premium: Crown,
+  enterprise: Building,
+  unlimited: Infinity,
 }
 
-const PLANS: PricingPlan[] = [
-  {
-    id: "starter",
-    name: "Starter",
-    icon: Package,
-    price: 0,
-    period: "month",
-    description: "Get started for free",
-    features: [
-      "Up to 5 product listings",
-      "Basic company profile",
-      "View feed and reels",
-      "3 messages per day",
-      "Basic search visibility",
-      "Community support",
-    ],
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    icon: TrendingUp,
-    price: 19,
-    period: "month",
-    description: "For emerging businesses",
-    features: [
-      "Up to 25 product listings",
-      "Enhanced company profile",
-      "25 messages per day",
-      "Upload up to 5 reels",
-      "Improved search ranking",
-      "Email support",
-      "Basic analytics",
-    ],
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    icon: Star,
-    price: 49,
-    period: "month",
-    description: "For growing businesses",
-    features: [
-      "Up to 100 product listings",
-      "Featured company profile",
-      "Unlimited messages",
-      "Upload up to 20 reels",
-      "Priority search placement",
-      "Advanced analytics",
-      "Priority email support",
-      "Verified badge",
-    ],
-    highlighted: true,
-    badge: "Most Popular",
-  },
-  {
-    id: "business",
-    name: "Business",
-    icon: Zap,
-    price: 99,
-    period: "month",
-    description: "For established companies",
-    features: [
-      "Up to 500 product listings",
-      "Premium company profile",
-      "Unlimited messages + calls",
-      "Unlimited reels",
-      "Top search placement",
-      "Full analytics suite",
-      "Phone & email support",
-      "Verified + Featured badge",
-      "Custom branding",
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    icon: Crown,
-    price: 249,
-    period: "month",
-    description: "For large organizations",
-    features: [
-      "Unlimited product listings",
-      "White-label profile",
-      "Dedicated account manager",
-      "Custom integrations",
-      "API access",
-      "Team management (10 seats)",
-      "24/7 priority support",
-      "Custom analytics reports",
-      "SLA guarantee",
-      "Remove Bizlink branding",
-    ],
-  },
-  {
-    id: "unlimited",
-    name: "Unlimited",
-    icon: Sparkles,
-    price: 499,
-    period: "month",
-    description: "No limits, maximum power",
-    features: [
-      "Everything in Enterprise",
-      "Unlimited team seats",
-      "Multi-company management",
-      "Custom feature development",
-      "Dedicated server resources",
-      "On-site training",
-      "Custom contract terms",
-      "Direct CEO hotline",
-      "Lifetime priority status",
-      "Early access to new features",
-    ],
-    badge: "Best Value",
-  },
+const PLAN_COLORS: Record<PlanId, { border: string; badge: string; btn: string }> = {
+  starter: { border: "border-foreground", badge: "bg-foreground text-background", btn: "" },
+  growth: { border: "border-blue-500", badge: "bg-blue-500 text-white", btn: "bg-blue-500 border-blue-600 text-white" },
+  pro: { border: "border-violet-500", badge: "bg-violet-500 text-white", btn: "bg-violet-500 border-violet-600 text-white" },
+  premium: { border: "border-primary", badge: "bg-primary text-primary-foreground", btn: "bg-primary border-foreground text-primary-foreground" },
+  enterprise: { border: "border-orange-500", badge: "bg-orange-500 text-white", btn: "bg-orange-500 border-orange-600 text-white" },
+  unlimited: { border: "border-red-500", badge: "bg-red-500 text-white", btn: "bg-red-500 border-red-600 text-white" },
+}
+
+const FEATURE_LABELS: Record<string, (val: unknown) => string | null> = {
+  productLimit: v => v === -1 ? "Unlimited products" : `Up to ${v} products`,
+  reelLimit: v => v === -1 ? "Unlimited reels" : `Up to ${v} reels`,
+  teamSeats: v => v === -1 ? "Unlimited team seats" : `${v} team seat${Number(v) > 1 ? "s" : ""}`,
+  analyticsLevel: v => v === "none" ? null : `${String(v).charAt(0).toUpperCase() + String(v).slice(1)} analytics`,
+  audioCall: v => v ? "Audio calls (LiveKit)" : null,
+  videoCall: v => v ? "Video calls + background blur" : null,
+  fileAttachments: v => v ? "File attachments in chat (20 MB)" : null,
+  voiceMessages: v => v ? "Voice messages" : null,
+  csvExport: v => v ? "CSV export" : null,
+  bulkExport: v => v ? "Bulk export" : null,
+  multiProductReel: v => v ? "Tag up to 5 products per reel" : null,
+  goldenTheme: v => v ? "Golden Premium animated theme" : null,
+  aiReplySuggestions: v => v ? "AI quick-reply suggestions" : null,
+  customDomain: v => v ? "Custom domain support" : null,
+  removeBranding: v => v ? "White-label (remove branding)" : null,
+  apiAccess: v => v ? "Full API access" : null,
+  prioritySupport: v => v ? "Priority support" : null,
+  dedicatedManager: v => v ? "Dedicated account manager" : null,
+  verifiedBadge: v => v ? "Verified badge" : null,
+}
+
+const FEATURE_ORDER = [
+  "productLimit","reelLimit","analyticsLevel","teamSeats",
+  "audioCall","videoCall","fileAttachments","voiceMessages",
+  "multiProductReel","csvExport","bulkExport",
+  "goldenTheme","aiReplySuggestions","customDomain",
+  "removeBranding","apiAccess","verifiedBadge",
+  "prioritySupport","dedicatedManager",
 ]
+
+function formatINR(n: number) {
+  return n.toLocaleString("en-IN")
+}
 
 export default function PackagesPage() {
   const router = useRouter()
   const { user, company } = useAppStore()
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const currentPlan = (company?.subscription_plan ?? "starter") as PlanId
 
-  const getPrice = (plan: PricingPlan) => {
-    if (billingCycle === "yearly") {
-      return Math.floor(plan.price * 10) // 2 months free
-    }
-    return plan.price
-  }
+  const [selected, setSelected] = useState<PlanId | null>(null)
+  const [upgrading, setUpgrading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  const handleSelectPlan = (planId: string) => {
-    setSelectedPlan(planId)
-    setShowConfirmModal(true)
-  }
-
-  const handleConfirm = () => {
-    // Handle subscription logic
-    alert(`You selected the ${PLANS.find(p => p.id === selectedPlan)?.name} plan. In production, this would redirect to a payment gateway.`)
-    setShowConfirmModal(false)
+  async function handleUpgrade(planId: PlanId) {
+    if (!user) { router.push("/auth"); return }
+    setSelected(planId); setUpgrading(true)
+    // TODO: wire real payment gateway (Razorpay/Stripe)
+    await new Promise(r => setTimeout(r, 1200))
+    setUpgrading(false); setSuccess(true)
+    setTimeout(() => setSuccess(false), 3000)
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="bg-card border-b-4 border-foreground sticky top-0 z-40">
-        <div className="flex items-center justify-between p-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-muted transition-colors border-2 border-transparent hover:border-foreground"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold">Subscription Plans</h1>
-          <div className="w-10" />
+      <header className="sticky top-0 z-20 bg-background border-b-2 border-foreground/20 flex items-center gap-3 px-4 py-3">
+        <button onClick={() => router.back()} className="p-1.5 border-2 border-foreground/30 hover:border-foreground transition-all">
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div>
+          <h1 className="text-base font-black uppercase tracking-tight">Packages</h1>
+          <p className="text-[11px] text-muted-foreground">Current: <strong className="text-foreground capitalize">{currentPlan}</strong></p>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <div className="golden-gradient p-6 text-center">
-        <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary-foreground" />
-        <h2 className="text-2xl font-bold text-primary-foreground mb-2">
-          Grow Your Business with Bizlink
-        </h2>
-        <p className="text-primary-foreground/80 max-w-md mx-auto">
-          Choose the plan that fits your needs and start reaching more wholesale buyers today.
+      <main className="px-4 pt-4 flex flex-col gap-4">
+        {success && (
+          <div className="p-3 border-2 border-green-600 bg-green-50 text-green-700 text-sm font-bold text-center">
+            Plan upgrade request sent! Our team will contact you shortly.
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground text-center">
+          All prices in Indian Rupees (INR), billed monthly. Higher tiers include all features from lower tiers.
         </p>
-      </div>
 
-      {/* Billing Toggle */}
-      <div className="flex justify-center py-6">
-        <div className="flex items-center gap-4 p-1 border-4 border-foreground bg-card">
-          <button
-            onClick={() => setBillingCycle("monthly")}
-            className={`px-4 py-2 font-bold transition-colors ${
-              billingCycle === "monthly" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBillingCycle("yearly")}
-            className={`px-4 py-2 font-bold transition-colors relative ${
-              billingCycle === "yearly" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            }`}
-          >
-            Yearly
-            <span className="absolute -top-3 -right-3 bg-green-500 text-white text-xs px-1.5 py-0.5 font-bold">
-              -17%
-            </span>
-          </button>
-        </div>
-      </div>
+        {ALL_PLANS.map(plan => {
+          const Icon = ICONS[plan.id] ?? Package
+          const colors = PLAN_COLORS[plan.id]
+          const isCurrent = plan.id === currentPlan
+          const isHigher = ALL_PLANS.findIndex(p => p.id === plan.id) > ALL_PLANS.findIndex(p => p.id === currentPlan)
 
-      {/* Plans Grid */}
-      <div className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
-        {PLANS.map((plan) => (
-          <div
-            key={plan.id}
-            className={`brutalist-card p-6 flex flex-col relative ${
-              plan.highlighted ? "border-primary border-4 bg-primary/5" : ""
-            }`}
-          >
-            {plan.badge && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-                {plan.badge}
-              </span>
-            )}
+          // Build feature list
+          const features: string[] = []
+          for (const key of FEATURE_ORDER) {
+            const val = (plan as unknown as Record<string, unknown>)[key]
+            const label = FEATURE_LABELS[key]?.(val)
+            if (label) features.push(label)
+          }
 
-            <div className="text-center mb-6">
-              <div className={`w-14 h-14 mx-auto mb-4 flex items-center justify-center border-4 border-foreground ${
-                plan.highlighted ? "bg-primary" : "bg-muted"
-              }`}>
-                <plan.icon className={`w-7 h-7 ${plan.highlighted ? "text-primary-foreground" : ""}`} />
+          return (
+            <div key={plan.id} className={cn(
+              "bg-card border-2 shadow-[3px_3px_0px_0px] transition-shadow",
+              isCurrent ? `${colors.border} shadow-primary` : `border-foreground/20 shadow-foreground/20`,
+              plan.id === "premium" && "border-primary shadow-[3px_3px_0px_0px] shadow-primary"
+            )}>
+              {/* Plan header */}
+              <div className={cn("flex items-start justify-between p-4 border-b-2",
+                isCurrent ? "border-primary/20" : "border-foreground/10")}>
+                <div className="flex items-center gap-2.5">
+                  <div className={cn("w-9 h-9 flex items-center justify-center border-2", colors.border)}>
+                    <Icon className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="text-sm font-black uppercase tracking-wide">{plan.id.toUpperCase()}</h2>
+                      {isCurrent && (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-primary text-primary-foreground">
+                          Current
+                        </span>
+                      )}
+                      {plan.id === "premium" && !isCurrent && (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-primary text-primary-foreground">
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{plan.priceMonthlyLabel}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-black">₹{formatINR(plan.priceINR)}</p>
+                  <p className="text-[10px] text-muted-foreground">/month</p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold">{plan.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-            </div>
 
-            <div className="text-center mb-6">
-              <span className="text-4xl font-black">${getPrice(plan)}</span>
-              <span className="text-muted-foreground">
-                /{billingCycle === "yearly" ? "year" : "month"}
-              </span>
-              {billingCycle === "yearly" && plan.price > 0 && (
-                <p className="text-sm text-green-600 mt-1">
-                  Save ${plan.price * 2}/year
-                </p>
+              {/* Features */}
+              <div className="p-4 flex flex-col gap-1.5">
+                {features.map(f => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 mt-0.5 shrink-0 text-green-600" />
+                    <span className="text-xs text-foreground/80">{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              {!isCurrent && (
+                <div className="px-4 pb-4">
+                  <button
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={upgrading && selected === plan.id}
+                    className={cn(
+                      "w-full py-2.5 text-xs font-black uppercase tracking-widest border-2 transition-all",
+                      "shadow-[2px_2px_0px_0px] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_0px]",
+                      "active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+                      "disabled:opacity-60 disabled:cursor-not-allowed",
+                      colors.btn
+                        ? `${colors.btn} shadow-foreground`
+                        : "bg-foreground text-background border-foreground shadow-foreground/40",
+                      isHigher ? "opacity-100" : "opacity-70"
+                    )}>
+                    {upgrading && selected === plan.id ? "Processing..." : isHigher ? `Upgrade to ${plan.id.toUpperCase()}` : "Switch Plan"}
+                  </button>
+                </div>
               )}
             </div>
+          )
+        })}
 
-            <ul className="space-y-3 flex-1 mb-6">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              onClick={() => handleSelectPlan(plan.id)}
-              className={`w-full py-3 font-bold border-4 border-foreground transition-colors ${
-                plan.highlighted
-                  ? "bg-primary text-primary-foreground hover:opacity-90"
-                  : "bg-card hover:bg-muted"
-              }`}
-            >
-              {plan.price === 0 ? "Get Started" : "Subscribe"}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Features Comparison */}
-      <div className="p-4 mt-8 max-w-4xl mx-auto">
-        <h3 className="text-xl font-bold text-center mb-6">Why Choose Bizlink Premium?</h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="brutalist-card p-4 text-center">
-            <TrendingUp className="w-8 h-8 mx-auto text-primary mb-2" />
-            <p className="font-bold">10x More Visibility</p>
-            <p className="text-xs text-muted-foreground">Reach more buyers</p>
-          </div>
-          <div className="brutalist-card p-4 text-center">
-            <Shield className="w-8 h-8 mx-auto text-primary mb-2" />
-            <p className="font-bold">Verified Badge</p>
-            <p className="text-xs text-muted-foreground">Build trust</p>
-          </div>
-          <div className="brutalist-card p-4 text-center">
-            <Eye className="w-8 h-8 mx-auto text-primary mb-2" />
-            <p className="font-bold">Analytics</p>
-            <p className="text-xs text-muted-foreground">Track performance</p>
-          </div>
-          <div className="brutalist-card p-4 text-center">
-            <MessageCircle className="w-8 h-8 mx-auto text-primary mb-2" />
-            <p className="font-bold">Priority Support</p>
-            <p className="text-xs text-muted-foreground">We're here to help</p>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ */}
-      <div className="p-4 mt-8 max-w-2xl mx-auto pb-20">
-        <h3 className="text-xl font-bold text-center mb-6">Frequently Asked Questions</h3>
-        
-        <div className="space-y-4">
-          <div className="brutalist-card p-4">
-            <h4 className="font-bold mb-2">Can I cancel anytime?</h4>
-            <p className="text-sm text-muted-foreground">
-              Yes! You can cancel your subscription at any time. Your plan will remain active until the end of the billing period.
-            </p>
-          </div>
-          <div className="brutalist-card p-4">
-            <h4 className="font-bold mb-2">What payment methods do you accept?</h4>
-            <p className="text-sm text-muted-foreground">
-              We accept all major credit cards, PayPal, and bank transfers for enterprise plans.
-            </p>
-          </div>
-          <div className="brutalist-card p-4">
-            <h4 className="font-bold mb-2">Can I upgrade or downgrade my plan?</h4>
-            <p className="text-sm text-muted-foreground">
-              Absolutely! You can change your plan at any time. Changes take effect immediately, and we'll prorate the billing.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Confirm Modal */}
-      {showConfirmModal && selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmModal(false)} />
-          <div className="relative w-full max-w-md bg-card border-4 border-foreground p-6">
-            <button
-              onClick={() => setShowConfirmModal(false)}
-              className="absolute top-4 right-4 p-2 hover:bg-muted"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-xl font-bold mb-4">Confirm Subscription</h3>
-            
-            <div className="p-4 bg-muted border-2 border-foreground mb-4">
-              <p className="font-bold">{PLANS.find(p => p.id === selectedPlan)?.name} Plan</p>
-              <p className="text-2xl font-black">
-                ${getPrice(PLANS.find(p => p.id === selectedPlan)!)}
-                <span className="text-sm font-normal text-muted-foreground">
-                  /{billingCycle === "yearly" ? "year" : "month"}
-                </span>
-              </p>
-            </div>
-
-            <p className="text-sm text-muted-foreground mb-4">
-              By continuing, you agree to our Terms of Service and will be charged automatically.
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="flex-1 py-3 border-4 border-foreground font-bold hover:bg-muted"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                className="flex-1 py-3 bg-primary border-4 border-foreground font-bold text-primary-foreground"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        <p className="text-[11px] text-muted-foreground text-center pb-2">
+          Contact us at <strong>support@goldensbizlink.com</strong> for custom enterprise quotes.
+        </p>
+      </main>
     </div>
   )
 }
