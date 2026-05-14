@@ -160,32 +160,35 @@
    Neo Brutalism Styles
    ============================================ */
 
-/* Brutalist card style */
+/* Brutalist card style - COMPACT & CUTE */
 .brutalist-card {
-  @apply bg-card border-4 border-foreground shadow-[6px_6px_0px_0px] shadow-foreground;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  @apply bg-card border-2 border-foreground shadow-[3px_3px_0px_0px] shadow-foreground;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
 }
 
 .brutalist-card:hover {
-  transform: translate(-2px, -2px);
-  @apply shadow-[8px_8px_0px_0px] shadow-foreground;
+  transform: translate(-1px, -1px);
+  @apply shadow-[4px_4px_0px_0px] shadow-foreground;
 }
 
 .brutalist-card:active {
-  transform: translate(2px, 2px);
-  @apply shadow-[2px_2px_0px_0px] shadow-foreground;
+  transform: translate(1px, 1px);
+  @apply shadow-[1px_1px_0px_0px] shadow-foreground;
 }
 
-/* Brutalist button */
+/* Brutalist button - INSTANT response */
 .brutalist-btn {
-  @apply font-bold uppercase tracking-wide border-4 border-foreground bg-primary text-primary-foreground px-6 py-3;
-  @apply shadow-[4px_4px_0px_0px] shadow-foreground;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  @apply font-bold uppercase tracking-wide border-3 border-foreground bg-primary text-primary-foreground px-4 py-2;
+  @apply shadow-[3px_3px_0px_0px] shadow-foreground;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .brutalist-btn:hover {
-  transform: translate(-2px, -2px);
-  @apply shadow-[6px_6px_0px_0px] shadow-foreground;
+  transform: translate(-1px, -1px);
+  @apply shadow-[4px_4px_0px_0px] shadow-foreground;
 }
 
 .brutalist-btn:active {
@@ -195,7 +198,7 @@
 
 .brutalist-btn:disabled {
   @apply opacity-50 cursor-not-allowed;
-  transform: none;
+  transform: none !important;
 }
 
 /* Brutalist input */

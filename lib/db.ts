@@ -133,16 +133,39 @@ export const auth = {
     return { user, error: null }
   },
 
-  async signInWithGoogle(): Promise<{ user: User | null; error: string | null }> {
+  async signInWithGoogle(): Promise<{ user: User | null; error: string | null; needsProfileCompletion?: boolean }> {
     if (isSupabaseConfigured() && supabase) {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth/callback` } })
+      // Real Supabase Google OAuth - opens in new tab
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: 'google', 
+        options: { 
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' }
+        } 
+      })
       if (error) return { user: null, error: error.message }
+      // The user will be redirected, so we return null here
+      // The callback page will handle the session
       return { user: null, error: null }
     }
-    const user: User = { id: generateId(), email: 'demo@golden.tech', role: 'company_owner', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), is_verified: true, two_factor_enabled: false, profile_completeness: 20 }
+    // Demo mode - simulate Google login with popup effect
+    const googleEmail = `user${Math.floor(Math.random() * 1000)}@gmail.com`
+    const user: User = { 
+      id: generateId(), 
+      email: googleEmail, 
+      name: 'Google User',
+      avatar_url: `https://ui-avatars.com/api/?name=Google+User&background=f5c000&color=000`,
+      role: 'company_owner', 
+      created_at: new Date().toISOString(), 
+      updated_at: new Date().toISOString(), 
+      is_verified: true, 
+      two_factor_enabled: false, 
+      profile_completeness: 20 
+    }
     store.set(K.USER, user)
     store.set(K.SESSION, { id: user.id })
-    return { user, error: null }
+    // New Google users need to complete their profile
+    return { user, error: null, needsProfileCompletion: true }
   },
 
   async signOut(): Promise<void> {

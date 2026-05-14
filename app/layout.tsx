@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Poppins, Roboto_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { SettingsProvider } from '@/components/settings-provider'
 import './globals.css'
 
 const poppins = Poppins({ 
@@ -70,7 +71,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${poppins.variable} ${robotoMono.variable}`}>
       <body className="font-sans antialiased bg-background">
-        {children}
+        <SettingsProvider>
+          {children}
+        </SettingsProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

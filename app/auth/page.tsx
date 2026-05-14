@@ -80,15 +80,21 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      const { user, error: googleError } = await auth.signInWithGoogle()
+      // This will open Google OAuth in a new tab/popup
+      const { user, error: googleError, needsProfileCompletion } = await auth.signInWithGoogle()
       if (googleError) {
         setError(googleError)
       } else if (user) {
         setUser(user)
-        router.push('/home')
+        // If new Google user, they need to complete their profile
+        if (needsProfileCompletion) {
+          setView('signup')
+        } else {
+          router.push('/home')
+        }
       }
     } catch {
-      setError('An unexpected error occurred')
+      setError('Google sign in failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
