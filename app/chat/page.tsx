@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Send, Paperclip, Image as ImageIcon, MoreVertical, Phone, Video, User, Check, CheckCheck, Clock, Smile, X, Search, Plus, Building2 } from "lucide-react"
 import { useAppStore } from "@/lib/store"
@@ -30,6 +30,14 @@ interface ChatMessage {
 }
 
 export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="w-full h-full bg-background" />}>
+      <ChatPageContent />
+    </Suspense>
+  )
+}
+
+function ChatPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const conversationId = searchParams.get("id")
