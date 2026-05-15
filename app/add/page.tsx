@@ -22,16 +22,20 @@ export default function AddPage() {
 
   // Product form
   const [productForm, setProductForm] = useState({
-    name: "", description: "", category: "", images: [] as string[], minOrderQty: 1,
+    name: "", description: "", category: "", minOrderQty: 1,
     priceMin: 0, priceMax: 0, currency: "USD", specifications: {} as Record<string, string>, tags: [] as string[]
   })
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
   const [newSpecKey, setNewSpecKey] = useState("")
   const [newSpecValue, setNewSpecValue] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Reel form
-  const [reelForm, setReelForm] = useState({ title: "", description: "", videoUrl: "", thumbnailUrl: "", tags: [] as string[], productsTagged: [] as string[] })
+  const [reelForm, setReelForm] = useState({ title: "", description: "", tags: [] as string[], productsTagged: [] as string[] })
+  const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [reelTag, setReelTag] = useState("")
 
   useEffect(() => {

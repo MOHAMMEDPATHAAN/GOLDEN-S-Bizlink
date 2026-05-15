@@ -38,11 +38,20 @@ export interface ExtendedSettings {
   // Advanced
   autoPlayReels: boolean
   dataUsage: 'low' | 'medium' | 'high'
+  imageQuality: 'low' | 'medium' | 'high'
   infiniteScroll: boolean
+  pipEnabled: boolean
+  pullToRefresh: boolean
+  quickShare: boolean
+  copyLink: boolean
+  exportData: boolean
+  showTimestamps: boolean
+  numberFormat: 'comma' | 'dot'
   // Security
   appLock: boolean
   twoFactorEnabled: boolean
   betaFeatures: boolean
+  [key: string]: unknown   // index signature for Record<string,unknown> compatibility
 }
 
 const defaultSettings: ExtendedSettings = {
@@ -70,7 +79,15 @@ const defaultSettings: ExtendedSettings = {
   locationServices: false,
   autoPlayReels: true,
   dataUsage: 'medium',
+  imageQuality: 'high',
   infiniteScroll: true,
+  pipEnabled: true,
+  pullToRefresh: true,
+  quickShare: true,
+  copyLink: true,
+  exportData: true,
+  showTimestamps: true,
+  numberFormat: 'comma',
   appLock: false,
   twoFactorEnabled: false,
   betaFeatures: false,

@@ -367,6 +367,14 @@ export const reels = {
     if (!isSupabaseReady() || !supabase) return
     await supabase.rpc('increment_reel_views', { reel_id: id })
   },
+
+  async toggleLike(id: string, liked: boolean): Promise<{ likes: number; error: string | null }> {
+    if (!isSupabaseReady() || !supabase)
+      return { likes: 0, error: '🟢🟢 Supabase not configured 🟢🟢' }
+    const fn = liked ? 'decrement_reel_likes' : 'increment_reel_likes'
+    const { data, error } = await supabase.rpc(fn, { reel_id: id })
+    return { likes: (data as number) ?? 0, error: error?.message ?? null }
+  },
 }
 
 // ──────────────────────────────────────────────

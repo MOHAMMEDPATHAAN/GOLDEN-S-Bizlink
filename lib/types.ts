@@ -73,6 +73,8 @@ export interface Company {
   youtube?: string
   snapchat?: string
   whatsapp?: string
+  phone?: string
+  email?: string
   // subscription / meta
   subscription_plan: SubscriptionPlan
   is_verified?: boolean
@@ -116,9 +118,14 @@ export interface Reel {
   product_id?: string
   video_url: string           // B2 path — resolved in db.ts
   thumbnail_url?: string
+  title?: string
+  description?: string
   caption?: string
+  tags?: string[]
   views?: number
   likes?: number
+  comments_count?: number
+  shares?: number
   duration?: number
   is_active?: boolean
   created_at: string
