@@ -1,36 +1,27 @@
 // ============================================
-// BIZLINK - Global State Store (Zustand)
+// BIZLINK — Global State (Zustand + persist)
 // Developer: GOLDEN'S (Golden techS)
 // ============================================
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { User, Company, UserSettings, Theme, UserRole } from './types'
+import type { User, Company, Theme, UserRole, SubscriptionPlan } from './types'
 
-// Extended settings type with all options
+// ─── Extended settings ────────────────────────────────────────────────────
 export interface ExtendedSettings {
-  // General
-  language: string
-  currency: string
-  timezone: string
-  dateFormat: string
-  numberFormat: string
-  startupPage: 'home' | 'reels' | 'products' | 'last'
-  autoSignIn: boolean
-  twoFactorEnabled: boolean
-  betaFeatures: boolean
-  
-  // Account
-  appLock: boolean
-  showOnlineStatus: boolean
-  
   // Display
-  theme: 'system' | 'light' | 'dark' | 'golden'
-  fontSize: number
+  theme: Theme           // 'system' | 'light' | 'dark' | 'golden'
+  language: string
+  fontSize: 'small' | 'medium' | 'large'
   highContrast: boolean
   reducedMotion: boolean
   screenReader: boolean
-  
+  // General
+  currency: string
+  timezone: string
+  dateFormat: string
+  startupPage: 'home' | 'reels' | 'products' | 'last'
+  autoSignIn: boolean
   // Notifications
   pushNotifications: boolean
   notificationSound: boolean
@@ -38,227 +29,185 @@ export interface ExtendedSettings {
   chatNotifications: boolean
   productNotifications: boolean
   networkNotifications: boolean
-  
   // Privacy
-  publicProfile: boolean
+  showOnlineStatus: boolean
   showActivity: boolean
+  publicProfile: boolean
   saveSearchHistory: boolean
   locationServices: boolean
-  
   // Advanced
-  dataUsage: 'low' | 'medium' | 'high'
-  imageQuality: 'low' | 'medium' | 'high'
   autoPlayReels: boolean
-  pipEnabled: boolean
+  dataUsage: 'low' | 'medium' | 'high'
   infiniteScroll: boolean
-  pullToRefresh: boolean
-  quickShare: boolean
-  copyLink: boolean
-  exportData: boolean
-  showTimestamps: boolean
+  // Security
+  appLock: boolean
+  twoFactorEnabled: boolean
+  betaFeatures: boolean
 }
 
 const defaultSettings: ExtendedSettings = {
-  language: 'en',
-  currency: 'USD',
-  timezone: 'UTC',
-  dateFormat: 'MM/DD/YYYY',
-  numberFormat: 'comma',
-  startupPage: 'home',
-  autoSignIn: true,
-  twoFactorEnabled: false,
-  betaFeatures: false,
-  appLock: false,
-  showOnlineStatus: true,
   theme: 'system',
-  fontSize: 1,
+  language: 'en',
+  fontSize: 'medium',
   highContrast: false,
   reducedMotion: false,
   screenReader: false,
+  currency: 'USD',
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  startupPage: 'home',
+  autoSignIn: true,
   pushNotifications: true,
   notificationSound: true,
   notificationVibration: true,
   chatNotifications: true,
   productNotifications: true,
   networkNotifications: true,
-  publicProfile: true,
+  showOnlineStatus: true,
   showActivity: true,
+  publicProfile: true,
   saveSearchHistory: true,
   locationServices: false,
-  dataUsage: 'medium',
-  imageQuality: 'high',
   autoPlayReels: true,
-  pipEnabled: true,
+  dataUsage: 'medium',
   infiniteScroll: true,
-  pullToRefresh: true,
-  quickShare: true,
-  copyLink: true,
-  exportData: true,
-  showTimestamps: true,
+  appLock: false,
+  twoFactorEnabled: false,
+  betaFeatures: false,
 }
 
+// ─── Store shape ──────────────────────────────────────────────────────────
 interface AppState {
   // Auth
   user: User | null
   isAuthenticated: boolean
   selectedRole: UserRole | null
-  
   // Company
   company: Company | null
-  
   // Settings
   settings: ExtendedSettings
-  theme: Theme
-  language: string
-  
-  // UI State
-  isLoading: boolean
+  // UI
   showSplash: boolean
   showAppLock: boolean
+  isLoading: boolean
   currentPage: string
-  
-  // Notifications
+  // Counts
   unreadChatCount: number
   unreadNotificationCount: number
-  
+
   // Actions
-  setUser: (user: User | null) => void
-  setSelectedRole: (role: UserRole) => void
-  setCompany: (company: Company | null) => void
-  setSettings: (settings: Partial<ExtendedSettings>) => void
-  setTheme: (theme: Theme) => void
-  setLanguage: (language: string) => void
-  setIsLoading: (loading: boolean) => void
-  setShowSplash: (show: boolean) => void
-  setShowAppLock: (show: boolean) => void
-  setCurrentPage: (page: string) => void
-  setUnreadChatCount: (count: number) => void
-  setUnreadNotificationCount: (count: number) => void
+  setUser: (u: User | null) => void
+  setSelectedRole: (r: UserRole | null) => void
+  setCompany: (c: Company | null) => void
+  setSettings: (s: Partial<ExtendedSettings>) => void
+  setShowSplash: (v: boolean) => void
+  setShowAppLock: (v: boolean) => void
+  setIsLoading: (v: boolean) => void
+  setCurrentPage: (p: string) => void
+  setUnreadChatCount: (n: number) => void
+  setUnreadNotificationCount: (n: number) => void
   clearSession: () => void
   logout: () => void
+
+  // Derived helpers (not persisted)
+  plan: () => SubscriptionPlan
 }
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
-      // Initial state
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       selectedRole: null,
       company: null,
       settings: defaultSettings,
-      theme: 'system',
-      language: 'en',
-      isLoading: false,
       showSplash: true,
       showAppLock: false,
+      isLoading: false,
       currentPage: 'home',
       unreadChatCount: 0,
       unreadNotificationCount: 0,
-      
-      // Actions
+
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      setSelectedRole: (role) => set({ selectedRole: role }),
+      setSelectedRole: (selectedRole) => set({ selectedRole }),
       setCompany: (company) => set({ company }),
-      setSettings: (newSettings) => set((state) => ({ 
-        settings: { ...state.settings, ...newSettings },
-        theme: newSettings.theme || state.theme,
-        language: newSettings.language || state.language
-      })),
-      setTheme: (theme) => set({ theme }),
-      setLanguage: (language) => set({ language }),
-      setIsLoading: (isLoading) => set({ isLoading }),
+      setSettings: (s) =>
+        set((state) => ({ settings: { ...state.settings, ...s } })),
       setShowSplash: (showSplash) => set({ showSplash }),
       setShowAppLock: (showAppLock) => set({ showAppLock }),
+      setIsLoading: (isLoading) => set({ isLoading }),
       setCurrentPage: (currentPage) => set({ currentPage }),
       setUnreadChatCount: (unreadChatCount) => set({ unreadChatCount }),
       setUnreadNotificationCount: (unreadNotificationCount) => set({ unreadNotificationCount }),
-      clearSession: () => set({
-        user: null,
-        isAuthenticated: false,
-        company: null,
-        showAppLock: false,
-        unreadChatCount: 0,
-        unreadNotificationCount: 0,
-      }),
-      logout: () => set({
-        user: null,
-        isAuthenticated: false,
-        company: null,
-        settings: defaultSettings,
-        showAppLock: false,
-        unreadChatCount: 0,
-        unreadNotificationCount: 0,
-      }),
+      clearSession: () =>
+        set({
+          user: null,
+          isAuthenticated: false,
+          company: null,
+          unreadChatCount: 0,
+          unreadNotificationCount: 0,
+        }),
+      logout: () =>
+        set({
+          user: null,
+          isAuthenticated: false,
+          selectedRole: null,
+          company: null,
+          settings: defaultSettings,
+          showAppLock: false,
+          unreadChatCount: 0,
+          unreadNotificationCount: 0,
+        }),
+
+      plan: () => get().company?.subscription_plan ?? get().user?.subscription_plan ?? 'starter',
     }),
     {
-      name: 'bizlink-app-store',
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        selectedRole: state.selectedRole,
-        company: state.company,
-        settings: state.settings,
-        theme: state.theme,
-        language: state.language,
-        showSplash: state.showSplash,
+      name: 'bizlink-store-v2',
+      partialize: (s) => ({
+        user: s.user,
+        isAuthenticated: s.isAuthenticated,
+        selectedRole: s.selectedRole,
+        company: s.company,
+        settings: s.settings,
+        showSplash: s.showSplash,
       }),
     }
   )
 )
 
-// Theme utilities
+// ─── DOM helpers ──────────────────────────────────────────────────────────
 export function applyTheme(theme: Theme): void {
   if (typeof window === 'undefined') return
-  
   const root = document.documentElement
-  
-  // Remove all theme classes
   root.classList.remove('light', 'dark', 'golden-premium')
-  
   if (theme === 'system') {
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    root.classList.add(systemDark ? 'dark' : 'light')
-  } else if (theme === 'golden_premium') {
+    root.classList.add(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  } else if (theme === 'golden') {
     root.classList.add('dark', 'golden-premium')
   } else {
     root.classList.add(theme)
   }
 }
 
-// Font size utilities
 export function applyFontSize(size: 'small' | 'medium' | 'large'): void {
   if (typeof window === 'undefined') return
-  
-  const root = document.documentElement
-  const scales: Record<string, string> = {
-    small: '0.875',
-    medium: '1',
-    large: '1.125',
-  }
-  root.style.setProperty('--app-font-scale', scales[size])
+  const map = { small: '0.875', medium: '1', large: '1.125' }
+  document.documentElement.style.setProperty('--app-font-scale', map[size])
 }
 
-// Reduced motion
-export function applyReducedMotion(reduce: boolean): void {
+export function applyReducedMotion(v: boolean): void {
   if (typeof window === 'undefined') return
-  
-  const root = document.documentElement
-  if (reduce) {
-    root.classList.add('reduce-motion')
-  } else {
-    root.classList.remove('reduce-motion')
-  }
+  document.documentElement.classList.toggle('reduce-motion', v)
 }
 
-// High contrast
-export function applyHighContrast(enable: boolean): void {
+export function applyHighContrast(v: boolean): void {
   if (typeof window === 'undefined') return
-  
-  const root = document.documentElement
-  if (enable) {
-    root.classList.add('high-contrast')
-  } else {
-    root.classList.remove('high-contrast')
-  }
+  document.documentElement.classList.toggle('high-contrast', v)
+}
+
+export function applyLanguage(code: string): void {
+  if (typeof window === 'undefined') return
+  const rtl = ['ar', 'ur', 'fa', 'he']
+  document.documentElement.lang = code
+  document.documentElement.dir = rtl.includes(code) ? 'rtl' : 'ltr'
 }

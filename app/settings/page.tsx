@@ -13,7 +13,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -100,6 +99,11 @@ export default function SettingsPage() {
   const updateSetting = <K extends keyof typeof settings>(key: K, value: typeof settings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }))
     setHasChanges(true)
+    // Apply display-related settings immediately so the user sees the change live
+    const previewKeys: Array<keyof typeof settings> = ["theme", "language", "fontSize", "highContrast", "reducedMotion"]
+    if (previewKeys.includes(key)) {
+      setSettings({ [key]: value } as Partial<typeof settings>)
+    }
   }
 
   const handleSave = async () => {
@@ -547,17 +551,20 @@ export default function SettingsPage() {
               <SettingRow
                 icon={<Type className="w-5 h-5" />}
                 label="Font Size"
-                description={`Scale: ${localSettings.fontSize}x`}
+                description={`Size: ${localSettings.fontSize}`}
               >
-                <div className="w-32">
-                  <Slider
-                    value={[localSettings.fontSize]}
-                    onValueChange={([v]) => updateSetting("fontSize", v)}
-                    min={0.8}
-                    max={1.4}
-                    step={0.1}
-                    className="w-full"
-                  />
+                <div className="flex gap-1">
+                  {(["small", "medium", "large"] as const).map(size => (
+                    <button key={size}
+                      onClick={() => updateSetting("fontSize", size)}
+                      className={`px-3 py-1.5 text-xs font-bold border-2 capitalize transition-all ${
+                        localSettings.fontSize === size
+                          ? "bg-primary text-primary-foreground border-foreground shadow-[2px_2px_0px_0px] shadow-foreground"
+                          : "border-foreground/30 hover:border-foreground"
+                      }`}>
+                      {size}
+                    </button>
+                  ))}
                 </div>
               </SettingRow>
 

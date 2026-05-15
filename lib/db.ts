@@ -458,6 +458,16 @@ export const settings = {
 }
 
 // ──────────────────────────────────────────────
+// APP STATE (thin localStorage shim used by main page)
+// ──────────────────────────────────────────────
+export const appState = {
+  setSkipSplash: (v: boolean) => ls.set('bizlink-skip-splash', v),
+  shouldSkipSplash: (): boolean => ls.get('bizlink-skip-splash', false),
+  setSelectedRole: (role: string) => ls.set('bizlink-role', role),
+  getSelectedRole: (): string | null => ls.get<string | null>('bizlink-role', null),
+}
+
+// ──────────────────────────────────────────────
 // DRAFT SIGNUP
 // ──────────────────────────────────────────────
 export const draftSignup = {

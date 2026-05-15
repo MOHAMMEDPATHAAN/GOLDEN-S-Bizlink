@@ -56,7 +56,7 @@ type TranslationKey =
   | 'reels.title' | 'reels.upload' | 'reels.noReels'
   | 'profile.title' | 'profile.edit' | 'profile.company' | 'profile.analytics'
   | 'common.loading' | 'common.error' | 'common.success' | 'common.confirm' | 'common.cancel' | 'common.save' | 'common.delete' | 'common.edit' | 'common.view' | 'common.search' | 'common.filter' | 'common.sort' | 'common.noData' | 'common.retry' | 'common.back' | 'common.next' | 'common.previous' | 'common.submit' | 'common.close'
-  | 'packages.title' | 'packages.starter' | 'packages.growth' | 'packages.professional' | 'packages.business' | 'packages.enterprise' | 'packages.unlimited'
+  | 'packages.title' | 'packages.starter' | 'packages.growth' | 'packages.pro' | 'packages.premium' | 'packages.enterprise' | 'packages.unlimited'
 
 type Translations = Record<TranslationKey, string>
 
@@ -133,8 +133,9 @@ const translations: Record<string, Translations> = {
     'packages.title': 'Subscription Plans',
     'packages.starter': 'Starter',
     'packages.growth': 'Growth',
-    'packages.professional': 'Professional',
-    'packages.business': 'Business',
+    'packages.pro': 'Pro',
+    'packages.premium': 'Premium',
+    
     'packages.enterprise': 'Enterprise',
     'packages.unlimited': 'Unlimited',
   },
@@ -150,7 +151,7 @@ const translations: Record<string, Translations> = {
     'nav.network': 'الشبكة',
     'auth.signIn': 'تسجيل الدخول',
     'auth.signUp': 'إنشاء حساب',
-    'auth.signOut': 'تسجيل الخروج',
+    'auth.signOut': 'تسجي�� الخروج',
     'auth.email': 'البريد الإلكتروني',
     'auth.password': 'كلمة المرور',
     'auth.forgotPassword': 'نسيت كلمة المرور؟',
@@ -210,8 +211,9 @@ const translations: Record<string, Translations> = {
     'packages.title': 'خطط الاشتراك',
     'packages.starter': 'المبتدئ',
     'packages.growth': 'النمو',
-    'packages.professional': 'المحترف',
-    'packages.business': 'الأعمال',
+    'packages.pro': 'Pro',
+    'packages.premium': 'Premium',
+    
     'packages.enterprise': 'المؤسسات',
     'packages.unlimited': 'غير محدود',
   },
@@ -287,8 +289,9 @@ const translations: Record<string, Translations> = {
     'packages.title': 'सदस्यता योजनाएं',
     'packages.starter': 'स्टार्टर',
     'packages.growth': 'ग्रोथ',
-    'packages.professional': 'प्रोफेशनल',
-    'packages.business': 'बिज़नेस',
+    'packages.pro': 'Pro',
+    'packages.premium': 'Premium',
+    
     'packages.enterprise': 'एंटरप्राइज़',
     'packages.unlimited': 'अनलिमिटेड',
   },
@@ -364,8 +367,9 @@ const translations: Record<string, Translations> = {
     'packages.title': 'Planes de Suscripción',
     'packages.starter': 'Inicial',
     'packages.growth': 'Crecimiento',
-    'packages.professional': 'Profesional',
-    'packages.business': 'Negocios',
+    'packages.pro': 'Pro',
+    'packages.premium': 'Premium',
+    
     'packages.enterprise': 'Empresarial',
     'packages.unlimited': 'Ilimitado',
   },
@@ -441,8 +445,9 @@ const translations: Record<string, Translations> = {
     'packages.title': "Plans d'abonnement",
     'packages.starter': 'Débutant',
     'packages.growth': 'Croissance',
-    'packages.professional': 'Professionnel',
-    'packages.business': 'Business',
+    'packages.pro': 'Pro',
+    'packages.premium': 'Premium',
+    
     'packages.enterprise': 'Entreprise',
     'packages.unlimited': 'Illimité',
   },
